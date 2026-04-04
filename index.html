@@ -2,8 +2,31 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>النظام الصحي الوطني الذكي</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>صحتك — النظام الصحي الوطني الذكي</title>
+
+<!-- PWA / App Meta -->
+<meta name="application-name" content="صحتك">
+<meta name="description" content="نظام صحي وطني ذكي مدعوم بالذكاء الاصطناعي — رؤية 2030">
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS PWA / Standalone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="صحتك">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- Android / Theme -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A0A0F">
+<meta name="msapplication-navbutton-color" content="#0A0A0F">
+<meta name="msapplication-starturl" content="/index.html">
+
+<!-- Prevent phone number detection -->
+<meta name="format-detection" content="telephone=no">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
   :root {
     --bg-primary: #0A0A0F;
@@ -43,27 +66,44 @@
     --glass: rgba(255, 255, 255, 0.9);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  /* ─── APP-LIKE BASE ─── */
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none; user-select: none; }
+
+  /* Allow text selection only in inputs */
+  input, textarea { -webkit-user-select: text; user-select: text; }
 
   body {
     font-family: 'Segoe UI', 'Cairo', 'Arial', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
-    min-height: 100vh;
+    height: 100%;
     display: flex;
     justify-content: center;
-    overflow-x: hidden;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    /* Prevent pull-to-refresh on Android/Chrome */
+    overscroll-behavior-y: contain;
   }
 
   #app {
     width: 100%;
     max-width: 430px;
-    min-height: 100vh;
+    height: 100%;
+    height: -webkit-fill-available;
     background: var(--bg-primary);
     position: relative;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    /* iOS safe area */
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   /* ─── SCREENS ─── */
@@ -892,7 +932,42 @@
 
   /* ─── UTILS ─── */
   .spacer { height: 12px; }
-</style>
+
+  /* ─── PWA INSTALL BANNER ─── */
+  #install-banner {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 390px;
+    background: var(--bg-card2);
+    border: 1px solid var(--neon-cyan);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    z-index: 500;
+    box-shadow: var(--shadow-cyan);
+    animation: fadeIn 0.4s ease;
+  }
+  #install-banner.visible { display: flex; align-items: center; gap: 12px; }
+  .install-icon { font-size: 28px; flex-shrink: 0; }
+  .install-text { flex: 1; }
+  .install-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  .install-sub   { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .install-btn {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+    border: none; border-radius: 20px;
+    font-size: 12px; font-weight: 700; color: white;
+    cursor: pointer; flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .install-btn:active { transform: scale(0.95); }
+  .install-close {
+    font-size: 18px; color: var(--text-secondary);
+    cursor: pointer; flex-shrink: 0; padding: 0 4px;
+  }</style>
 </head>
 <body>
 
@@ -1537,12 +1612,15 @@
     const timeEl = who === 'user'
       ? `<div class="msg-time" style="text-align:left">${time}</div>`
       : `<div class="msg-time">${time}</div>`;
-    const bubble = text.replace(/\n/g, '<br>');
+    // Escape user text to prevent XSS; AI responses may contain <br> added by us
+    const safe = who === 'user'
+      ? text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')
+      : text.replace(/\n/g,'<br>');
     messages.innerHTML += `
       <div class="msg ${who}">
         ${av}
         <div>
-          <div class="msg-bubble">${bubble}</div>
+          <div class="msg-bubble">${safe}</div>
           ${timeEl}
         </div>
       </div>`;
@@ -1639,6 +1717,56 @@
   }
 
   drawQR();
+
+  /* ═══════════════════════════════
+     PWA — Service Worker + Install
+  ═══════════════════════════════ */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+
+  // Install prompt banner
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').classList.add('visible');
+  });
+
+  function installApp() {
+    const banner = document.getElementById('install-banner');
+    banner.classList.remove('visible');
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    }
+  }
+
+  function dismissInstall() {
+    document.getElementById('install-banner').classList.remove('visible');
+  }
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    document.getElementById('install-banner').classList.remove('visible');
+    showToast('✅ تم تثبيت التطبيق بنجاح!');
+  });
+
+  // Prevent context menu (app-like)
+  document.addEventListener('contextmenu', e => e.preventDefault());
 </script>
+
+<!-- PWA Install Banner -->
+<div id="install-banner">
+  <span class="install-icon">📲</span>
+  <div class="install-text">
+    <div class="install-title">ثبّت تطبيق صحتك</div>
+    <div class="install-sub">للوصول السريع من شاشة الرئيسية</div>
+  </div>
+  <button class="install-btn" onclick="installApp()">تثبيت</button>
+  <span class="install-close" onclick="dismissInstall()">✕</span>
+</div>
 </body>
 </html>

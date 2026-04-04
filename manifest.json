@@ -1,0 +1,42 @@
+{
+  "name": "صحتك — النظام الصحي الوطني الذكي",
+  "short_name": "صحتك",
+  "description": "نظام صحي وطني ذكي مدعوم بالذكاء الاصطناعي — رؤية 2030",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A0F",
+  "theme_color": "#00F5FF",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["health", "medical"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "طوارئ",
+      "short_name": "طوارئ",
+      "url": "/index.html#emergency",
+      "description": "اتصال طوارئ فوري"
+    },
+    {
+      "name": "AI مساعد",
+      "short_name": "AI",
+      "url": "/index.html#ai",
+      "description": "مساعد صحي ذكي"
+    }
+  ]
+}
