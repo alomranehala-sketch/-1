@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1026956143217",
+    "firebase_url": "https://uni-hosptial-api-default-rtdb.firebaseio.com",
+    "project_id": "uni-hosptial-api",
+    "storage_bucket": "uni-hosptial-api.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1026956143217:android:71c2fc77e3ecf6958c89d0",
+        "android_client_info": {
+          "package_name": "com.robot3d.robot_intro_3d"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEjRUSdr6jCm71KV5K7WTWpxOvUTO681k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

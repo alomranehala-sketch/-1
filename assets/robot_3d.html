@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>3D Robot</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { 
+    width: 100%; height: 100%; overflow: hidden;
+    background: #0a0a0f;
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+  #loading {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #0a0a0f; z-index: 100;
+    transition: opacity 0.8s ease;
+  }
+  #loading.hide { opacity: 0; pointer-events: none; }
+  .loader {
+    width: 50px; height: 50px; border: 3px solid rgba(0,200,255,0.2);
+    border-top-color: #00c8ff; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  /* Mobile App UI Overlay */
+  #app-overlay {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 40px 24px calc(env(safe-area-inset-bottom, 20px) + 24px);
+    background: linear-gradient(to top, #0a0a0f 0%, rgba(10,10,15,0.85) 60%, transparent 100%);
+    z-index: 50; text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  #app-overlay.show { opacity: 1; transform: translateY(0); }
+  #app-overlay h1 {
+    color: #fff; font-size: 28px; font-weight: 700;
+    letter-spacing: 1.2px; margin: 0 0 8px;
+  }
+  #app-overlay p {
+    color: rgba(255,255,255,0.6); font-size: 15px;
+    font-weight: 400; margin: 0 0 32px;
+  }
+  #app-overlay button {
+    width: 100%; max-width: 400px; height: 56px;
+    background: #00c8ff; color: #0a0a0f;
+    border: none; border-radius: 16px;
+    font-size: 17px; font-weight: 600;
+    letter-spacing: 0.5px; cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #app-overlay button:active {
+    transform: scale(0.97);
+    background: #00b0e0;
+  }
+  
+  /* Top gradient */
+  #top-grad {
+    position: fixed; top: 0; left: 0; right: 0; height: 120px;
+    background: linear-gradient(to bottom, #0a0a0f, transparent);
+    z-index: 40; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="loading"><div class="loader"></div></div>
+<div id="top-grad"></div>
+<div id="app-overlay">
+  <h1>AI Assistant</h1>
+  <p>Your intelligent companion is ready</p>
+  <button>Get Started</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ─── SCENE SETUP ─────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0f);
+scene.fog = new THREE.Fog(0x0a0a0f, 8, 20);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.2, 5);
+camera.lookAt(0, 0.3, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// ─── LIGHTING ────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0x1a1a2e, 0.8);
+scene.add(ambientLight);
+
+const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+mainLight.position.set(3, 5, 4);
+mainLight.castShadow = true;
+mainLight.shadow.mapSize.set(1024, 1024);
+mainLight.shadow.camera.near = 0.5;
+mainLight.shadow.camera.far = 20;
+mainLight.shadow.bias = -0.001;
+scene.add(mainLight);
+
+const fillLight = new THREE.DirectionalLight(0x4488ff, 0.4);
+fillLight.position.set(-3, 2, -2);
+scene.add(fillLight);
+
+const rimLight = new THREE.PointLight(0x00c8ff, 1.5, 10);
+rimLight.position.set(0, 2, -3);
+scene.add(rimLight);
+
+// Subtle blue ground glow
+const groundGlow = new THREE.PointLight(0x00c8ff, 0.6, 5);
+groundGlow.position.set(0, -0.5, 0);
+scene.add(groundGlow);
+
+// ─── MATERIALS ───────────────────────────────
+const bodyMaterial = new THREE.MeshStandardMaterial({
+  color: 0xe8e8ec,
+  roughness: 0.25,
+  metalness: 0.05,
+  envMapIntensity: 1.0,
+});
+
+const darkMaterial = new THREE.MeshStandardMaterial({
+  color: 0x1a1a22,
+  roughness: 0.4,
+  metalness: 0.3,
+});
+
+const screenMaterial = new THREE.MeshStandardMaterial({
+  color: 0x000810,
+  roughness: 0.1,
+  metalness: 0.8,
+  emissive: new THREE.Color(0x001020),
+  emissiveIntensity: 0.3,
+});
+
+const glowMaterial = new THREE.MeshStandardMaterial({
+  color: 0x00c8ff,
+  emissive: new THREE.Color(0x00c8ff),
+  emissiveIntensity: 2.0,
+  roughness: 0.0,
+  metalness: 0.0,
+  transparent: true,
+  opacity: 0.95,
+});
+
+const blueAccentMaterial = new THREE.MeshStandardMaterial({
+  color: 0x00a0e0,
+  emissive: new THREE.Color(0x0080cc),
+  emissiveIntensity: 1.2,
+  roughness: 0.1,
+  metalness: 0.2,
+  transparent: true,
+  opacity: 0.9,
+});
+
+const wheelMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2a2a32,
+  roughness: 0.6,
+  metalness: 0.4,
+});
+
+const antennaMaterial = new THREE.MeshStandardMaterial({
+  color: 0xc0c0c8,
+  roughness: 0.3,
+  metalness: 0.6,
+});
+
+// ─── ROBOT GROUP ─────────────────────────────
+const robot = new THREE.Group();
+robot.scale.set(0, 0, 0);
+
+// ─── BODY (Rounded Box) ─────────────────────
+function createRoundedBox(w, h, d, r, segs) {
+  const shape = new THREE.Shape();
+  const hw = w / 2 - r, hh = h / 2 - r;
+  shape.moveTo(-hw - r, -hh);
+  shape.lineTo(hw + r, -hh);
+  shape.quadraticCurveTo(hw + r, -hh, hw + r, -hh + r);
+  // Use RoundedBoxGeometry approximation
+  return new THREE.BoxGeometry(w, h, d, segs, segs, segs);
+}
+
+// Main body
+const bodyGeom = new THREE.BoxGeometry(2.2, 1.6, 1.6, 4, 4, 4);
+// Round edges by modifying vertices
+const posAttr = bodyGeom.attributes.position;
+const v = new THREE.Vector3();
+for (let i = 0; i < posAttr.count; i++) {
+  v.fromBufferAttribute(posAttr, i);
+  const fx = Math.pow(Math.abs(v.x / 1.1), 3);
+  const fy = Math.pow(Math.abs(v.y / 0.8), 3);
+  const fz = Math.pow(Math.abs(v.z / 0.8), 3);
+  const d = Math.pow(fx + fy + fz, 1/3);
+  if (d > 0) {
+    const scale = 1 / d;
+    if (scale < 1) {
+      v.x *= scale;
+      v.y *= scale;
+      v.z *= scale;
+    }
+  }
+  posAttr.setXYZ(i, v.x, v.y, v.z);
+}
+bodyGeom.computeVertexNormals();
+
+const body = new THREE.Mesh(bodyGeom, bodyMaterial);
+body.position.y = 1.4;
+body.castShadow = true;
+body.receiveShadow = true;
+robot.add(body);
+
+// ─── SCREEN (front face) ────────────────────
+const screenGeom = new THREE.PlaneGeometry(1.7, 1.1, 1, 1);
+const screen = new THREE.Mesh(screenGeom, screenMaterial);
+screen.position.set(0, 1.45, 0.81);
+robot.add(screen);
+
+// Screen border glow
+const borderShape = new THREE.Shape();
+const bw = 0.9, bh = 0.6, br = 0.12;
+borderShape.moveTo(-bw + br, -bh);
+borderShape.lineTo(bw - br, -bh);
+borderShape.quadraticCurveTo(bw, -bh, bw, -bh + br);
+borderShape.lineTo(bw, bh - br);
+borderShape.quadraticCurveTo(bw, bh, bw - br, bh);
+borderShape.lineTo(-bw + br, bh);
+borderShape.quadraticCurveTo(-bw, bh, -bw, bh - br);
+borderShape.lineTo(-bw, -bh + br);
+borderShape.quadraticCurveTo(-bw, -bh, -bw + br, -bh);
+
+const innerShape = new THREE.Path();
+const iw = bw - 0.04, ih = bh - 0.04, ir = 0.08;
+innerShape.moveTo(-iw + ir, -ih);
+innerShape.lineTo(iw - ir, -ih);
+innerShape.quadraticCurveTo(iw, -ih, iw, -ih + ir);
+innerShape.lineTo(iw, ih - ir);
+innerShape.quadraticCurveTo(iw, ih, iw - ir, ih);
+innerShape.lineTo(-iw + ir, ih);
+innerShape.quadraticCurveTo(-iw, ih, -iw, ih - ir);
+innerShape.lineTo(-iw, -ih + ir);
+innerShape.quadraticCurveTo(-iw, -ih, -iw + ir, -ih);
+borderShape.holes.push(innerShape);
+
+const borderGeom = new THREE.ShapeGeometry(borderShape);
+const border = new THREE.Mesh(borderGeom, blueAccentMaterial);
+border.position.set(0, 1.45, 0.815);
+robot.add(border);
+
+// ─── SCREEN UI BAR (the blue bar on screen) ──
+const barGeom = new THREE.PlaneGeometry(0.8, 0.1, 1, 1);
+const screenBar = new THREE.Mesh(barGeom, glowMaterial);
+screenBar.position.set(0, 1.4, 0.82);
+robot.add(screenBar);
+
+// ─── BOTTOM BLUE TRIM ───────────────────────
+const trimGeom = new THREE.BoxGeometry(2.25, 0.06, 1.65, 2, 1, 2);
+const bottomTrim = new THREE.Mesh(trimGeom, blueAccentMaterial);
+bottomTrim.position.set(0, 0.58, 0);
+robot.add(bottomTrim);
+
+// ─── WHEEL ASSEMBLY (tank treads) ───────────
+function createWheelAssembly(xSide) {
+  const group = new THREE.Group();
+  
+  // Track housing
+  const housingGeom = new THREE.BoxGeometry(0.5, 0.7, 1.4, 2, 2, 2);
+  // Round the housing
+  const hPos = housingGeom.attributes.position;
+  const hv = new THREE.Vector3();
+  for (let i = 0; i < hPos.count; i++) {
+    hv.fromBufferAttribute(hPos, i);
+    const fx = Math.pow(Math.abs(hv.x / 0.25), 4);
+    const fy = Math.pow(Math.abs(hv.y / 0.35), 4);
+    const fz = Math.pow(Math.abs(hv.z / 0.7), 4);
+    const d = Math.pow(fx + fy + fz, 1/4);
+    if (d > 0) {
+      const s = 1 / d;
+      if (s < 1) { hv.x *= s; hv.y *= s; hv.z *= s; }
+    }
+    hPos.setXYZ(i, hv.x, hv.y, hv.z);
+  }
+  housingGeom.computeVertexNormals();
+  const housing = new THREE.Mesh(housingGeom, wheelMaterial);
+  housing.castShadow = true;
+  group.add(housing);
+
+  // Wheels (3 per side)
+  for (let i = -1; i <= 1; i++) {
+    const wheelGeom = new THREE.CylinderGeometry(0.22, 0.22, 0.52, 12);
+    wheelGeom.rotateZ(Math.PI / 2);
+    const wheel = new THREE.Mesh(wheelGeom, darkMaterial);
+    wheel.position.set(0, -0.05, i * 0.42);
+    wheel.castShadow = true;
+    group.add(wheel);
+    
+    // Wheel treads
+    const treadCount = 8;
+    for (let t = 0; t < treadCount; t++) {
+      const angle = (t / treadCount) * Math.PI * 2;
+      const treadGeom = new THREE.BoxGeometry(0.53, 0.03, 0.04);
+      const tread = new THREE.Mesh(treadGeom, wheelMaterial);
+      tread.position.set(
+        0,
+        -0.05 + Math.sin(angle) * 0.22,
+        i * 0.42 + Math.cos(angle) * 0.22
+      );
+      tread.rotation.x = angle;
+      group.add(tread);
+    }
+  }
+
+  group.position.set(xSide * 1.15, 0.35, 0);
+  return group;
+}
+
+const leftWheels = createWheelAssembly(-1);
+const rightWheels = createWheelAssembly(1);
+robot.add(leftWheels);
+robot.add(rightWheels);
+
+// ─── ANTENNAS ────────────────────────────────
+function createAntenna(xPos) {
+  const group = new THREE.Group();
+  
+  // Stem
+  const stemGeom = new THREE.CylinderGeometry(0.03, 0.04, 0.5, 8);
+  const stem = new THREE.Mesh(stemGeom, antennaMaterial);
+  stem.position.y = 0.25;
+  group.add(stem);
+  
+  // Joint
+  const jointGeom = new THREE.SphereGeometry(0.05, 8, 8);
+  const joint = new THREE.Mesh(jointGeom, antennaMaterial);
+  joint.position.y = 0.5;
+  group.add(joint);
+  
+  // Top segment
+  const topGeom = new THREE.CylinderGeometry(0.025, 0.03, 0.35, 8);
+  const top = new THREE.Mesh(topGeom, antennaMaterial);
+  top.position.y = 0.7;
+  top.rotation.z = xPos > 0 ? 0.15 : -0.15;
+  group.add(top);
+  
+  // Tip
+  const tipGeom = new THREE.SphereGeometry(0.04, 8, 8);
+  const tip = new THREE.Mesh(tipGeom, antennaMaterial);
+  tip.position.y = 0.88;
+  tip.position.x = xPos > 0 ? 0.05 : -0.05;
+  group.add(tip);
+
+  group.position.set(xPos, 2.15, -0.1);
+  return group;
+}
+
+const leftAntenna = createAntenna(-0.25);
+const rightAntenna = createAntenna(0.25);
+robot.add(leftAntenna);
+robot.add(rightAntenna);
+
+// ─── FRONT DOTS (camera/sensor) ──────────────
+for (let i = 0; i < 3; i++) {
+  const dotGeom = new THREE.SphereGeometry(0.04, 8, 8);
+  const dot = new THREE.Mesh(dotGeom, darkMaterial);
+  dot.position.set(-0.2 + i * 0.2, 0.7, 0.8);
+  robot.add(dot);
+}
+
+// ─── SIDE ARM/CONNECTOR ──────────────────────
+const armGeom = new THREE.BoxGeometry(0.25, 0.3, 0.3, 2, 2, 2);
+const arm = new THREE.Mesh(armGeom, bodyMaterial);
+arm.position.set(1.2, 1.2, 0);
+arm.castShadow = true;
+robot.add(arm);
+
+scene.add(robot);
+
+// ─── GROUND PLANE ────────────────────────────
+const groundGeom = new THREE.CircleGeometry(6, 64);
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x0a0a14,
+  roughness: 0.8,
+  metalness: 0.2,
+});
+const ground = new THREE.Mesh(groundGeom, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.02;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Ground ring glow
+const ringGeom = new THREE.RingGeometry(1.8, 2.0, 64);
+const ringMat = new THREE.MeshBasicMaterial({
+  color: 0x00c8ff,
+  transparent: true,
+  opacity: 0.15,
+  side: THREE.DoubleSide,
+});
+const groundRing = new THREE.Mesh(ringGeom, ringMat);
+groundRing.rotation.x = -Math.PI / 2;
+groundRing.position.y = 0.01;
+scene.add(groundRing);
+
+// ─── ENVIRONMENT CUBEMAP (simple) ────────────
+const envScene = new THREE.Scene();
+const envColors = [0x1a1a2e, 0x1a1a2e, 0x16213e, 0x0a0a14, 0x1a1a2e, 0x1a1a2e];
+const cubeRT = new THREE.WebGLCubeRenderTarget(128);
+const cubeCamera = new THREE.CubeCamera(0.1, 10, cubeRT);
+// Simple env setup for reflections
+scene.environment = cubeRT.texture;
+
+// ─── INTERACTION STATE ───────────────────────
+let isDragging = false;
+let previousX = 0;
+let previousY = 0;
+let targetRotY = 0;
+let targetRotX = 0;
+let currentRotY = 0;
+let currentRotX = 0;
+let bounceAnim = 0;
+let introComplete = false;
+
+// Touch / Mouse events
+function onPointerDown(e) {
+  isDragging = true;
+  const p = e.touches ? e.touches[0] : e;
+  previousX = p.clientX;
+  previousY = p.clientY;
+}
+function onPointerMove(e) {
+  if (!isDragging || !introComplete) return;
+  const p = e.touches ? e.touches[0] : e;
+  const dx = p.clientX - previousX;
+  const dy = p.clientY - previousY;
+  targetRotY += dx * 0.008;
+  targetRotX += dy * 0.004;
+  targetRotX = Math.max(-0.3, Math.min(0.3, targetRotX));
+  previousX = p.clientX;
+  previousY = p.clientY;
+}
+function onPointerUp() {
+  isDragging = false;
+}
+function onTap(e) {
+  if (!introComplete) return;
+  bounceAnim = 1.0;
+}
+
+renderer.domElement.addEventListener('mousedown', onPointerDown);
+renderer.domElement.addEventListener('mousemove', onPointerMove);
+renderer.domElement.addEventListener('mouseup', onPointerUp);
+renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
+renderer.domElement.addEventListener('touchmove', onPointerMove, { passive: true });
+renderer.domElement.addEventListener('touchend', onPointerUp);
+renderer.domElement.addEventListener('dblclick', onTap);
+renderer.domElement.addEventListener('touchend', (e) => {
+  if (!isDragging) onTap(e);
+});
+
+// ─── RESIZE ──────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─── ANIMATION LOOP ──────────────────────────
+const clock = new THREE.Clock();
+let introPhase = 0; // 0=fadein, 1=playing, 2=idle
+let introTime = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const elapsed = clock.getElapsedTime();
+
+  // ── INTRO ANIMATION ──
+  if (!introComplete) {
+    introTime += dt;
+    
+    // Scale up (0 → 1 over 1.5s)
+    const scaleT = Math.min(introTime / 1.5, 1);
+    const eased = 1 - Math.pow(1 - scaleT, 3); // ease-out cubic
+    const s = 0.8 * eased + 0.2 * eased; // 0 to 1
+    robot.scale.set(s, s, s);
+    
+    // Fade in opacity of background ring
+    ringMat.opacity = 0.15 * scaleT;
+    
+    if (introTime > 2.0) {
+      introComplete = true;
+      document.getElementById('loading').classList.add('hide');
+      document.getElementById('app-overlay').classList.add('show');
+    }
+  }
+  
+  // ── FLOATING MOTION ──
+  const floatY = Math.sin(elapsed * 1.2) * 0.05;
+  const floatRot = Math.sin(elapsed * 0.8) * 0.02;
+  
+  // ── IDLE ROTATION ──
+  if (!isDragging && introComplete) {
+    targetRotY += dt * 0.15; // slow auto rotation
+  }
+  
+  // Smooth rotation
+  currentRotY += (targetRotY - currentRotY) * 0.05;
+  currentRotX += (targetRotX - currentRotX) * 0.05;
+  
+  robot.rotation.y = currentRotY;
+  robot.rotation.x = currentRotX + floatRot;
+  robot.position.y = floatY;
+  
+  // ── BOUNCE ON TAP ──
+  if (bounceAnim > 0) {
+    bounceAnim -= dt * 3;
+    const bounceY = Math.sin(bounceAnim * Math.PI * 3) * 0.15 * bounceAnim;
+    robot.position.y += bounceY;
+    const bounceScale = 1 + Math.sin(bounceAnim * Math.PI * 2) * 0.05 * bounceAnim;
+    robot.scale.set(bounceScale, bounceScale, bounceScale);
+  }
+  
+  // ── SCREEN GLOW PULSE ──
+  const glowPulse = 1.5 + Math.sin(elapsed * 2.5) * 0.8;
+  glowMaterial.emissiveIntensity = glowPulse;
+  blueAccentMaterial.emissiveIntensity = 0.8 + Math.sin(elapsed * 2.5) * 0.4;
+  
+  // Screen bar width animation
+  screenBar.scale.x = 0.8 + Math.sin(elapsed * 1.8) * 0.2;
+  
+  // ── WHEEL MICRO-MOVEMENT ──
+  leftWheels.children.forEach((child, i) => {
+    if (i > 0 && i <= 3) { // wheels
+      child.rotation.x += dt * 0.5;
+    }
+  });
+  rightWheels.children.forEach((child, i) => {
+    if (i > 0 && i <= 3) {
+      child.rotation.x += dt * 0.5;
+    }
+  });
+  
+  // ── ANTENNA SWAY ──
+  leftAntenna.rotation.z = Math.sin(elapsed * 1.5) * 0.03;
+  rightAntenna.rotation.z = Math.sin(elapsed * 1.5 + 0.5) * 0.03;
+  leftAntenna.rotation.x = Math.sin(elapsed * 1.1) * 0.02;
+  rightAntenna.rotation.x = Math.sin(elapsed * 1.1 + 0.3) * 0.02;
+  
+  // ── GROUND RING PULSE ──
+  ringMat.opacity = 0.1 + Math.sin(elapsed * 1.5) * 0.05;
+  groundRing.scale.set(
+    1 + Math.sin(elapsed * 0.8) * 0.03,
+    1 + Math.sin(elapsed * 0.8) * 0.03,
+    1
+  );
+  
+  // ── RIM LIGHT MOVEMENT ──
+  rimLight.position.x = Math.sin(elapsed * 0.5) * 2;
+  rimLight.intensity = 1.2 + Math.sin(elapsed * 2) * 0.3;
+  groundGlow.intensity = 0.4 + Math.sin(elapsed * 2.5) * 0.2;
+  
+  renderer.render(scene, camera);
+}
+
+// Start after short delay to ensure imports loaded
+setTimeout(() => {
+  animate();
+}, 300);
+
+</script>
+</body>
+</html>
