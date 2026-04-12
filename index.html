@@ -533,7 +533,7 @@
     gap: 14px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 5;
+    position: relative; z-index: 5;
   }
   .ai-avatar {
     width: 46px; height: 46px;
@@ -920,7 +920,7 @@
     margin: 0 auto 20px;
   }
   .modal-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
-  .modal-sub   { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .modal-sub   { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; white-space: pre-line; }
   .modal-actions { display: flex; gap: 12px; }
   .modal-btn {
     flex: 1;
@@ -993,7 +993,7 @@
     <div class="topbar">
       <div>
         <div class="topbar-title">صحتك 🏥</div>
-        <div class="topbar-sub">الجمعة، 4 أبريل 2026</div>
+        <div class="topbar-sub" id="topbar-date"></div>
       </div>
       <div class="topbar-icon" onclick="showToast('🔔 لا توجد إشعارات جديدة')">🔔</div>
     </div>
@@ -1221,7 +1221,7 @@
       <div class="wallet-currency">ريال سعودي · صالح حتى ديسمبر 2026</div>
     </div>
 
-    <button class="wallet-add-btn" onclick="showToast('➕ تم فتح نافذة إضافة الرصيد')">
+    <button type="button" class="wallet-add-btn" onclick="showToast('➕ تم فتح نافذة إضافة الرصيد')">
       <span>➕</span> إضافة رصيد
     </button>
 
@@ -1318,7 +1318,7 @@
     </div>
 
     <div class="chat-input-row">
-      <button class="send-btn" onclick="sendMessage()">➤</button>
+      <button type="button" class="send-btn" onclick="sendMessage()">➤</button>
       <input class="chat-input" id="chat-input" type="text" placeholder="اسأل عن صحتك...">
     </div>
     </div>
@@ -1478,6 +1478,15 @@
   /* ═══════════════════════════════
      NAVIGATION
   ═══════════════════════════════ */
+  // Set dynamic date in topbar
+  (function() {
+    const el = document.getElementById('topbar-date');
+    if (el) {
+      el.textContent = new Date().toLocaleDateString('ar-SA', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+    }
+  })();
   const DEFAULT_CHIPS = [
     '💊 هل أدويتي مناسبة؟',
     '🏃 كم ساعة رياضة أحتاج؟',
