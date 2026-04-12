@@ -1685,6 +1685,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  /* helper: get 2-char initials from an Arabic/multilingual name */
+  function getInitials(name) {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (words.length >= 2) return words[0].charAt(0) + words[1].charAt(0);
+    return words[0] ? words[0].substring(0, 2) : '؟';
+  }
+
   /* ═══════════════════════════════
      NAVIGATION
   ═══════════════════════════════ */
@@ -2416,7 +2423,7 @@
       document.getElementById('profile-name').textContent  = savedName;
       document.getElementById('ring-name').textContent     = savedName;
       // update avatar initials (first 2 chars of first word)
-      const initials = savedName.trim().substring(0, 2);
+      const initials = getInitials(savedName);
       document.getElementById('profile-avatar').textContent = initials;
       const ringAvatar = document.getElementById('ring-avatar');
       if (ringAvatar) ringAvatar.textContent = initials;
@@ -2444,7 +2451,7 @@
     if (!name) { showToast('⚠️ يرجى إدخال الاسم'); return; }
     document.getElementById('profile-name').textContent = name;
     document.getElementById('ring-name').textContent    = name;
-    const initials = name.trim().substring(0, 2);
+    const initials = getInitials(name);
     document.getElementById('profile-avatar').textContent = initials;
     const ra = document.getElementById('ring-avatar');
     if (ra) ra.textContent = initials;
