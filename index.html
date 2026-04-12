@@ -176,6 +176,27 @@
   .govt-badge-icon { font-size: 22px; }
   .govt-badge-title { font-size: 13px; font-weight: 700; color: var(--neon-cyan); }
 
+  /* ─── LOCATION CHIP ─── */
+  .location-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--neon-green);
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.25);
+    border-radius: 20px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    animation: locFade 0.4s ease;
+  }
+  @keyframes locFade {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .location-chip.loading { color: var(--text-secondary); border-color: var(--border); background: transparent; }
+
   /* ─── STATUS RING ─── */
   .status-ring-section {
     display: flex;
@@ -1001,10 +1022,11 @@
     <!-- Govt Badge -->
     <div class="govt-badge">
       <span class="govt-badge-icon">🇸🇦</span>
-      <div>
+      <div style="flex:1">
         <div class="govt-badge-title">النظام الصحي الوطني الذكي</div>
         <div>مدعوم بالذكاء الاصطناعي — رؤية 2030</div>
       </div>
+      <div id="location-chip" class="location-chip loading">📍 ...</div>
     </div>
 
     <!-- Smart Status Ring -->
@@ -1570,12 +1592,16 @@
   };
 
   function openModal(key) {
+    if (key === 'hospitals' || key === 'pharmacy') {
+      openLocationModal(key);
+      return;
+    }
     const m = modals[key];
     document.getElementById('modal-title').textContent = m.title;
     document.getElementById('modal-sub').textContent = m.sub;
     const actEl = document.getElementById('modal-actions');
     actEl.innerHTML = m.actions.map(a =>
-      `<button class="modal-btn ${a.cls}" onclick="${a.fn}">${a.label}</button>`
+      `<button type="button" class="modal-btn ${a.cls}" onclick="${a.fn}">${a.label}</button>`
     ).join('');
     document.getElementById('modal').classList.add('open');
   }
@@ -1599,6 +1625,116 @@
   function openMap() {
     closeModal();
     showToast('🗺 فتح التطبيق...');
+  }
+
+  /* ═══════════════════════════════
+     LIVE LOCATION (GPS)
+  ═══════════════════════════════ */
+  let userLat = null, userLng = null, userCity = null;
+  const GEO_TIMEOUT_MS = 12000; // ms to wait for GPS fix
+
+  function updateLocationChip(text, ready) {
+    const chip = document.getElementById('location-chip');
+    if (!chip) return;
+    chip.textContent = '📍 ' + text;
+    if (ready) {
+      chip.classList.remove('loading');
+    } else {
+      chip.classList.add('loading');
+    }
+  }
+
+  function initLocation() {
+    if (!('geolocation' in navigator)) {
+      updateLocationChip('الموقع غير متاح', false);
+      return;
+    }
+    updateLocationChip('جاري التحديد...', false);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        // Reverse-geocode with OpenStreetMap Nominatim (no API key needed)
+        fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json&accept-language=ar`,
+          { headers: { 'Accept-Language': 'ar', 'User-Agent': 'SehhaApp/1.0' } }
+        )
+          .then(r => r.json())
+          .then(data => {
+            const a = data.address || {};
+            userCity = a.city || a.town || a.village || a.county || a.state || 'موقعك';
+            updateLocationChip(userCity, true);
+          })
+          .catch(() => updateLocationChip('تم التحديد', true));
+      },
+      () => updateLocationChip('يرجى السماح بالموقع', false),
+      { enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS }
+    );
+  }
+
+  // Open Google Maps near user for given search type
+  function openMapReal(type) {
+    closeModal();
+    const query = type === 'hospital' ? 'مستشفى' : 'صيدلية';
+    if (userLat && userLng) {
+      window.open(
+        `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${userLat},${userLng},15z`,
+        '_blank'
+      );
+    } else {
+      showToast('⏳ جاري تحديد موقعك...');
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          window.open(
+            `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${userLat},${userLng},15z`,
+            '_blank'
+          );
+        },
+        () => showToast('❌ لم يتمكن التطبيق من تحديد موقعك'),
+        { enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS }
+      );
+    }
+  }
+
+  // Location-aware modal for hospitals / pharmacies
+  function openLocationModal(type) {
+    const isHospital = type === 'hospitals';
+    document.getElementById('modal-title').textContent = isHospital ? '📍 مستشفيات قريبة' : '💊 صيدليات قريبة';
+    const subEl = document.getElementById('modal-sub');
+    const actEl = document.getElementById('modal-actions');
+    actEl.innerHTML = `
+      <button type="button" class="modal-btn primary" onclick="openMapReal('${isHospital ? 'hospital' : 'pharmacy'}')">🗺 فتح الخريطة</button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
+    `;
+    document.getElementById('modal').classList.add('open');
+
+    function setSubReady() {
+      const place = userCity ? `📍 موقعك: ${userCity}` : '📍 تم تحديد موقعك';
+      subEl.textContent = isHospital
+        ? `${place}\n\n🏥 اضغط "فتح الخريطة" لعرض المستشفيات القريبة منك على خرائط Google.`
+        : `${place}\n\n💊 اضغط "فتح الخريطة" لعرض الصيدليات القريبة منك على خرائط Google.`;
+    }
+
+    if (userLat && userLng) {
+      setSubReady();
+    } else {
+      subEl.textContent = '⏳ جاري تحديد موقعك...';
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          setSubReady();
+          // Also update chip
+          if (!userCity) updateLocationChip('تم التحديد', true);
+        },
+        () => {
+          subEl.textContent = '⚠️ لم يتم السماح بالوصول للموقع.\nيرجى السماح للتطبيق بالوصول لموقعك من إعدادات المتصفح.';
+        },
+        { enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS }
+      );
+    }
   }
 
   /* ═══════════════════════════════
@@ -1794,6 +1930,7 @@
   }
 
   drawQR();
+  initLocation(); // Start GPS detection immediately
 
   /* ═══════════════════════════════
      PWA — Service Worker + Install
