@@ -496,6 +496,46 @@
   .lab-date   { font-size: 10px; color: var(--text-secondary); margin-top: 3px; }
   .lab-result { font-size: 14px; font-weight: 700; color: var(--neon-green); }
 
+  /* ─── RECORDS SEARCH ─── */
+  .rec-search-wrap {
+    margin: 0 20px 12px;
+    position: relative;
+  }
+  .rec-search {
+    width: 100%; box-sizing: border-box;
+    padding: 10px 16px 10px 38px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+  .rec-search::placeholder { color: var(--text-secondary); }
+  .rec-search:focus { border-color: var(--neon-cyan); }
+  .rec-search-icon {
+    position: absolute;
+    top: 50%; left: 12px;
+    transform: translateY(-50%);
+    font-size: 15px; pointer-events: none;
+  }
+
+  /* ─── MEDICINE REMINDER TOGGLE ─── */
+  .med-reminder {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-secondary);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .med-reminder input { display: none; }
+  .med-bell {
+    font-size: 16px; transition: filter 0.2s;
+    filter: grayscale(1) opacity(0.4);
+  }
+  .med-reminder input:checked ~ .med-bell {
+    filter: grayscale(0) drop-shadow(0 0 4px var(--neon-cyan));
+  }
+
   /* ─── WALLET ─── */
   .wallet-hero {
     margin: 0 20px 20px;
@@ -1215,9 +1255,15 @@
         <div class="topbar-title">السجل الطبي 📋</div>
         <div class="topbar-sub">بياناتك الصحية الكاملة</div>
       </div>
-      <div class="topbar-icon" onclick="showToast('📥 تحميل السجل')">📥</div>
+      <div class="topbar-icon" onclick="downloadRecord()">📥</div>
     </div>
 
+    <div class="rec-search-wrap">
+      <span class="rec-search-icon">🔍</span>
+      <input class="rec-search" type="search" placeholder="ابحث في السجل..." oninput="filterRecords(this.value)">
+    </div>
+
+    <div id="records-content">
     <div class="sec-title">🏥 الزيارات السابقة</div>
     <div class="record-section">
       <div class="record-card">
@@ -1264,6 +1310,10 @@
           <div class="med-dose">مرة يومياً — صباحاً | 30 يوم متبقي</div>
         </div>
         <div class="act-badge badge-green">نشط</div>
+        <label class="med-reminder" title="تفعيل تذكير">
+          <input type="checkbox" id="rem-1" onchange="saveReminder('rem-1',this.checked)">
+          <span class="med-bell">🔔</span>
+        </label>
       </div>
       <div class="medicine-item">
         <div class="med-icon">🔵</div>
@@ -1272,6 +1322,10 @@
           <div class="med-dose">مرة يومياً — بعد الغداء | 45 يوم متبقي</div>
         </div>
         <div class="act-badge badge-cyan">فيتامين</div>
+        <label class="med-reminder" title="تفعيل تذكير">
+          <input type="checkbox" id="rem-2" onchange="saveReminder('rem-2',this.checked)">
+          <span class="med-bell">🔔</span>
+        </label>
       </div>
       <div class="medicine-item">
         <div class="med-icon">🟡</div>
@@ -1280,6 +1334,10 @@
           <div class="med-dose">مرتان يومياً — مع الطعام | 15 يوم متبقي</div>
         </div>
         <div class="act-badge badge-yellow">ينتهي قريباً</div>
+        <label class="med-reminder" title="تفعيل تذكير">
+          <input type="checkbox" id="rem-3" onchange="saveReminder('rem-3',this.checked)">
+          <span class="med-bell">🔔</span>
+        </label>
       </div>
     </div>
 
@@ -1300,6 +1358,7 @@
         <div class="lab-result" style="color:var(--neon-cyan)">95 mg/dL</div>
       </div>
     </div>
+    </div><!-- end #records-content -->
 
     <div class="spacer"></div>
   </div>
@@ -1735,6 +1794,70 @@
     const spec = sel ? sel.dataset.spec : 'عام';
     closeModal();
     showToast(`✅ تم حجز موعد — ${spec} — سيتم التواصل معك`);
+  }
+
+  /* ─── RECORDS: SEARCH / DOWNLOAD / REMINDER ─── */
+  function filterRecords(q) {
+    const text = q.trim().toLowerCase();
+    const content = document.getElementById('records-content');
+    if (!content) return;
+    if (!text) {
+      content.querySelectorAll('.record-card,.medicine-item,.lab-card').forEach(el => el.style.display = '');
+      content.querySelectorAll('.sec-title,.record-section').forEach(el => el.style.display = '');
+      return;
+    }
+    content.querySelectorAll('.record-card,.medicine-item,.lab-card').forEach(el => {
+      const match = el.textContent.toLowerCase().includes(text);
+      el.style.display = match ? '' : 'none';
+    });
+    content.querySelectorAll('.record-section').forEach(section => {
+      const anyVisible = Array.from(section.children).some(c => c.style.display !== 'none');
+      section.style.display = anyVisible ? '' : 'none';
+      const title = section.previousElementSibling;
+      if (title && title.classList.contains('sec-title')) {
+        title.style.display = anyVisible ? '' : 'none';
+      }
+    });
+  }
+
+  function downloadRecord() {
+    const lines = [
+      '═══ السجل الطبي — عمر محمد الأحمد ═══',
+      '',
+      '● الزيارات السابقة:',
+      '  - استشارة طب عام (20 مارس 2026) — مستشفى الملك فهد',
+      '    التشخيص: ضغط دم مرتفع طفيف | العلاج: أملوديبين 5mg',
+      '  - فحص أسنان (5 فبراير 2026) — عيادة الابتسامة',
+      '    الحالة: تنظيف دوري — لا مشاكل',
+      '  - استشارة قلب (10 يناير 2026) — مركز القلب',
+      '    تخطيط القلب: طبيعي',
+      '',
+      '● الأدوية الحالية:',
+      '  - أملوديبين 5mg | مرة يومياً — صباحاً | 30 يوم متبقي',
+      '  - فيتامين D3 1000 IU | مرة يومياً — بعد الغداء | 45 يوم متبقي',
+      '  - أوميغا 3 | مرتان يومياً | 15 يوم متبقي',
+      '',
+      '● نتائج التحاليل:',
+      '  - صورة دم كاملة (CBC) — 15 مارس 2026 — طبيعي',
+      '  - سكر الدم الصيامي — 15 مارس 2026 — 95 mg/dL',
+    ].join('\n');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(lines).then(() => showToast('📋 تم نسخ السجل إلى الحافظة'));
+    } else {
+      showToast('📋 السجل الطبي منسوخ');
+    }
+  }
+
+  function saveReminder(id, checked) {
+    localStorage.setItem('med_' + id, checked ? '1' : '0');
+    showToast(checked ? '🔔 تم تفعيل التذكير' : '🔕 تم إيقاف التذكير');
+  }
+
+  function loadReminders() {
+    ['rem-1','rem-2','rem-3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && localStorage.getItem('med_' + id) === '1') el.checked = true;
+    });
   }
 
   /* ─── NOTIFICATIONS ─── */
@@ -2214,6 +2337,7 @@
   drawQR();
   syncThemeUI();   // Sync toggle UI with saved theme on load
   initLocation(); // Start GPS detection immediately
+  loadReminders(); // Restore medicine reminder toggles
 
   /* ═══════════════════════════════
      PWA — Service Worker + Install
