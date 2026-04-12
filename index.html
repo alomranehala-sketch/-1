@@ -1804,7 +1804,7 @@
 
   function filterHosp(type) {
     buildHospList(type);
-    openMapReal('hospital_' + type);
+    openMapReal(type === 'govt' ? 'hospital_gov' : 'hospital_private');
   }
 
   function openLocationModal(type) {
