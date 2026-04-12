@@ -1877,8 +1877,10 @@
   }
 
   function downloadRecord() {
+    const savedName = localStorage.getItem('profile_name') ||
+      (document.getElementById('profile-name') ? document.getElementById('profile-name').textContent.trim() : 'المستخدم');
     const lines = [
-      '═══ السجل الطبي — عمر محمد الأحمد ═══',
+      `═══ السجل الطبي — ${savedName} ═══`,
       '',
       '● الزيارات السابقة:',
       '  - استشارة طب عام (20 مارس 2026) — مستشفى الملك فهد',
