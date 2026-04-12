@@ -335,6 +335,35 @@
   }
   .h-card-label { font-size: 10px; color: var(--text-secondary); text-align: center; }
   .h-card-unit  { font-size: 9px; color: var(--text-secondary); }
+  .health-updated { text-align: center; font-size: 10px; color: var(--text-secondary); padding: 0 20px 8px; }
+
+  /* ─── PROFILE EDIT MODAL ─── */
+  .edit-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.7); align-items: flex-end; justify-content: center;
+  }
+  .edit-modal-overlay.open { display: flex; }
+  .edit-modal-box {
+    background: var(--bg-card);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 24px 20px 36px;
+    width: 100%; max-width: 480px;
+  }
+  .edit-modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .edit-field { margin-bottom: 14px; }
+  .edit-field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .edit-field input {
+    width: 100%; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg-surface);
+    color: var(--text-primary); font-size: 15px; direction: rtl; box-sizing: border-box;
+  }
+  .edit-field input:focus { outline: none; border-color: var(--neon-cyan); }
+  .edit-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .edit-save-btn { flex: 1; padding: 13px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+    color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .edit-cancel-btn { flex: 1; padding: 13px; border-radius: 12px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-primary); font-size: 15px; cursor: pointer; }
 
   /* ─── SECTION TITLE ─── */
   .sec-title {
@@ -1164,7 +1193,7 @@
         <div class="ring-avatar">عم</div>
         <div class="ring-status-dot"></div>
       </div>
-      <div class="ring-name">عمر محمد الأحمد</div>
+      <div class="ring-name" id="ring-name">عمر محمد الأحمد</div>
       <div class="ring-id">1023456789 · A+</div>
     </div>
 
@@ -1189,6 +1218,7 @@
         <span class="h-card-label">الحالة</span>
       </div>
     </div>
+    <div class="health-updated" id="health-updated"></div>
 
     <!-- Quick Actions -->
     <div class="sec-title">⚡ الإجراءات السريعة</div>
@@ -1492,12 +1522,12 @@
         <div class="topbar-title">الحساب 👤</div>
         <div class="topbar-sub">بياناتك الشخصية</div>
       </div>
-      <div class="topbar-icon" onclick="showToast('✏️ تعديل البيانات')">✏️</div>
+      <div class="topbar-icon" onclick="openEditProfile()">✏️</div>
     </div>
 
     <div class="profile-hero">
-      <div class="profile-avatar">عم</div>
-      <div class="profile-name">عمر محمد الأحمد</div>
+      <div class="profile-avatar" id="profile-avatar">عم</div>
+      <div class="profile-name" id="profile-name">عمر محمد الأحمد</div>
       <div class="profile-id-tag">ID: 1023456789 · فصيلة الدم: A+</div>
       <div class="profile-stats">
         <div class="p-stat">
@@ -1533,7 +1563,7 @@
       </div>
       <div class="info-row">
         <span class="info-key">رقم الجوال</span>
-        <span class="info-value">+966 55 123 4567</span>
+        <span class="info-value" id="profile-phone">+966 55 123 4567</span>
         <span class="info-arrow">›</span>
       </div>
     </div>
@@ -1629,6 +1659,25 @@
     <div class="modal-sub"  id="modal-sub"></div>
     <div class="modal-list" id="modal-list"></div>
     <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- ════ PROFILE EDIT MODAL ════ -->
+<div class="edit-modal-overlay" id="edit-modal" onclick="closeEditProfile(event)">
+  <div class="edit-modal-box">
+    <div class="edit-modal-title">✏️ تعديل البيانات الشخصية</div>
+    <div class="edit-field">
+      <label>الاسم الكامل</label>
+      <input type="text" id="edit-name" placeholder="الاسم الكامل">
+    </div>
+    <div class="edit-field">
+      <label>رقم الجوال</label>
+      <input type="tel" id="edit-phone" placeholder="+966 55 123 4567">
+    </div>
+    <div class="edit-actions">
+      <button type="button" class="edit-save-btn" onclick="saveProfile()">💾 حفظ</button>
+      <button type="button" class="edit-cancel-btn" onclick="closeEditProfile()">إلغاء</button>
+    </div>
   </div>
 </div>
 
@@ -2143,8 +2192,13 @@
     const dia = 78 + Math.floor(Math.random() * 5);
     document.getElementById('hr-val').textContent = hr;
     document.getElementById('bp-val').textContent = sys + '/' + dia;
+    const upd = document.getElementById('health-updated');
+    if (upd) {
+      upd.textContent = '🔄 آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
   }
   setInterval(updateHealth, 3000);
+  updateHealth(); // run immediately to show time on load
 
   /* ═══════════════════════════════
      AI CHAT
@@ -2160,6 +2214,10 @@
     '🏃 كم ساعة رياضة أحتاج؟': 'الإرشادات الدولية تنصح بـ 150 دقيقة رياضة معتدلة أسبوعياً، أي 30 دقيقة يومياً لمدة 5 أيام. 🏃\n\nمناسب لك: المشي، السباحة، أو ركوب الدراجة. تجنب التمارين الشاقة لحالة الضغط.',
     '🥗 نظام غذائي صحي': 'للتحكم بضغط الدم، إليك النظام الغذائي المقترح:\n🥦 خضروات ورقية يومياً\n🐟 سمك مرتين أسبوعياً\n🧂 تقليل الملح < 5g يومياً\n🍎 فواكه طازجة\n❌ تجنب الوجبات السريعة',
     '😴 كم ساعة نوم مثالية؟': 'للبالغين في عمرك (28 سنة)، النوم المثالي هو 7-9 ساعات يومياً. 😴\n\nنصائح لنوم أفضل:\n🌙 نم في وقت ثابت كل ليلة\n📱 أبعد الشاشات قبل النوم ساعة\n🌡 درجة حرارة الغرفة 18-20°C',
+    'ضغط الدم': 'ضغط دمك الحالي في النطاق الطبيعي ✅. للحفاظ عليه: قلل الملح، مارس الرياضة، وتجنب التوتر. تابع مع طبيبك كل 3 أشهر.',
+    'سكر': 'مستوى السكر الصيامي لديك 95 mg/dL — طبيعي تماماً ✅. للوقاية: قلل السكريات والنشويات المكررة وحافظ على وزن صحي.',
+    'تحاليل': 'آخر تحاليلك (15 مارس 2026) أظهرت نتائج طبيعية لصورة الدم الكاملة والسكر الصيامي. يُنصح بإجراء تحاليل دورية كل 6 أشهر. 🔬',
+    'موعد': 'يمكنك حجز موعد الآن! 📅 انتقل للشاشة الرئيسية واضغط "حجز موعد" للاختيار من الأطباء المتاحين.',
   };
 
   function sendQuickReply(el) {
@@ -2175,7 +2233,16 @@
     if (!text) return;
     input.value = '';
     addMessage(text, 'user');
-    simulateTyping(aiResponses.default[Math.floor(Math.random() * aiResponses.default.length)]);
+    // Check for keyword match in aiResponses
+    const lower = text.toLowerCase();
+    let response = null;
+    for (const key of Object.keys(aiResponses)) {
+      if (key !== 'default' && lower.includes(key)) {
+        response = aiResponses[key];
+        break;
+      }
+    }
+    simulateTyping(response || aiResponses.default[Math.floor(Math.random() * aiResponses.default.length)]);
   }
 
   document.getElementById('chat-input').addEventListener('keydown', e => {
@@ -2340,6 +2407,53 @@
   loadReminders(); // Restore medicine reminder toggles
 
   /* ═══════════════════════════════
+     PROFILE EDIT
+  ═══════════════════════════════ */
+  (function loadProfileData() {
+    const savedName  = localStorage.getItem('profile_name');
+    const savedPhone = localStorage.getItem('profile_phone');
+    if (savedName) {
+      document.getElementById('profile-name').textContent  = savedName;
+      document.getElementById('ring-name').textContent     = savedName;
+      // update avatar initials (first 2 chars of first word)
+      const initials = savedName.trim().substring(0, 2);
+      document.getElementById('profile-avatar').textContent = initials;
+      const ringAvatar = document.getElementById('ring-avatar');
+      if (ringAvatar) ringAvatar.textContent = initials;
+    }
+    if (savedPhone) {
+      document.getElementById('profile-phone').textContent = savedPhone;
+    }
+  })();
+
+  function openEditProfile() {
+    document.getElementById('edit-name').value  = document.getElementById('profile-name').textContent.trim();
+    document.getElementById('edit-phone').value = document.getElementById('profile-phone').textContent.trim();
+    document.getElementById('edit-modal').classList.add('open');
+  }
+
+  function closeEditProfile(e) {
+    if (!e || e.target === document.getElementById('edit-modal')) {
+      document.getElementById('edit-modal').classList.remove('open');
+    }
+  }
+
+  function saveProfile() {
+    const name  = document.getElementById('edit-name').value.trim();
+    const phone = document.getElementById('edit-phone').value.trim();
+    if (!name) { showToast('⚠️ يرجى إدخال الاسم'); return; }
+    document.getElementById('profile-name').textContent = name;
+    document.getElementById('ring-name').textContent    = name;
+    localStorage.setItem('profile_name', name);
+    if (phone) {
+      document.getElementById('profile-phone').textContent = phone;
+      localStorage.setItem('profile_phone', phone);
+    }
+    document.getElementById('edit-modal').classList.remove('open');
+    showToast('✅ تم حفظ البيانات');
+  }
+
+  /* ═══════════════════════════════
      PWA — Service Worker + Install
   ═══════════════════════════════ */
   if ('serviceWorker' in navigator) {
@@ -2386,7 +2500,7 @@
     <div class="install-title">ثبّت تطبيق صحتك</div>
     <div class="install-sub">للوصول السريع من شاشة الرئيسية</div>
   </div>
-  <button class="install-btn" onclick="installApp()">تثبيت</button>
+  <button type="button" class="install-btn" onclick="installApp()">تثبيت</button>
   <span class="install-close" onclick="dismissInstall()">✕</span>
 </div>
 </body>
