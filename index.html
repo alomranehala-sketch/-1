@@ -1747,6 +1747,15 @@
 
   // Location-aware modal for hospitals / pharmacies
   // Sample hospital data (representative; real nearby results open via Google Maps)
+  const PHARMACIES = [
+    { name:'صيدلية النهدي',         hours:'24 ساعة',  phone:'9200009924' },
+    { name:'صيدلية الدوائي',        hours:'8ص – 11م', phone:'9200009925' },
+    { name:'صيدلية البطل',          hours:'9ص – 10م', phone:'9200009926' },
+    { name:'صيدلية رعاية',          hours:'24 ساعة',  phone:'9200009927' },
+    { name:'صيدلية سيف',            hours:'24 ساعة',  phone:'9200009928' },
+    { name:'صيدلية أحمد علي',       hours:'8ص – 12م', phone:'9200009929' },
+  ];
+
   const HOSPITALS = [
     { type:'govt',    name:'مستشفى الملك فهد',               hours:'24 ساعة',  phone:'920001234' },
     { type:'govt',    name:'مجمع الأمير سلطان الطبي',        hours:'24 ساعة',  phone:'920002345' },
@@ -1807,6 +1816,51 @@
     openMapReal(type === 'govt' ? 'hospital_gov' : 'hospital_private');
   }
 
+  function buildPharmList() {
+    const listEl = document.getElementById('modal-list');
+    listEl.innerHTML = '';
+    PHARMACIES.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'hosp-card';
+
+      const top = document.createElement('div');
+      top.className = 'hosp-card-top';
+
+      const badge = document.createElement('span');
+      badge.className = 'hosp-badge govt';
+      badge.textContent = '💊 صيدلية';
+
+      const name = document.createElement('span');
+      name.className = 'hosp-name';
+      name.textContent = p.name;
+
+      top.appendChild(badge);
+      top.appendChild(name);
+
+      const meta = document.createElement('div');
+      meta.className = 'hosp-meta';
+
+      const hoursSpan = document.createElement('span');
+      hoursSpan.textContent = '🕐 ' + p.hours;
+
+      const phoneSpan = document.createElement('span');
+      const phoneIcon = document.createTextNode('📞 ');
+      const phoneLink = document.createElement('a');
+      phoneLink.className = 'hosp-phone-link';
+      phoneLink.href = 'tel:' + p.phone;
+      phoneLink.textContent = p.phone;
+      phoneSpan.appendChild(phoneIcon);
+      phoneSpan.appendChild(phoneLink);
+
+      meta.appendChild(hoursSpan);
+      meta.appendChild(phoneSpan);
+
+      card.appendChild(top);
+      card.appendChild(meta);
+      listEl.appendChild(card);
+    });
+  }
+
   function openLocationModal(type) {
     const isHospital = type === 'hospitals';
     document.getElementById('modal-title').textContent = isHospital ? '📍 مستشفيات قريبة' : '💊 صيدليات قريبة';
@@ -1822,7 +1876,7 @@
         <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
       `;
     } else {
-      listEl.innerHTML = '';
+      buildPharmList();
       actEl.innerHTML = `
         <button type="button" class="modal-btn primary" onclick="openMapReal('pharmacy')">🗺 فتح الخريطة</button>
         <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
@@ -1834,7 +1888,7 @@
       const place = userCity ? `📍 موقعك: ${userCity}` : '📍 تم تحديد موقعك';
       subEl.textContent = isHospital
         ? `${place} — اضغط نوع المستشفى لعرضه على الخريطة.`
-        : `${place}\n\n💊 اضغط "فتح الخريطة" لعرض الصيدليات القريبة منك على خرائط Google.`;
+        : `${place} — اضغط على رقم الهاتف للاتصال أو "فتح الخريطة" للبحث.`;
     }
 
     if (userLat && userLng) {
@@ -1983,10 +2037,14 @@
   /* ═══════════════════════════════
      THEME TOGGLE
   ═══════════════════════════════ */
-  let isDark = true;
+  let isDark = localStorage.getItem('theme') !== 'light';
+  (function applyTheme() {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  })();
   function toggleTheme() {
     isDark = !isDark;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
     const sw = document.getElementById('toggle-sw');
     const icon = document.getElementById('theme-icon');
     const label = document.getElementById('theme-label');
