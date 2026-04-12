@@ -95,8 +95,9 @@
   #app {
     width: 100%;
     max-width: 430px;
-    height: 100%;
-    height: -webkit-fill-available;
+    height: 100vh;
+    height: 100dvh; /* dynamic viewport — correct on mobile with browser chrome */
+    height: -webkit-fill-available; /* iOS Safari fallback */
     background: var(--bg-primary);
     position: relative;
     overflow: hidden;
@@ -256,7 +257,11 @@
     0%,100% { transform: translateY(0); }
     50%      { transform: translateY(-3px); }
   }
-  .h-card:active { transform: scale(0.95) !important; box-shadow: var(--shadow-cyan); }
+  .h-card:active {
+    animation-play-state: paused;
+    transform: scale(0.95);
+    box-shadow: var(--shadow-cyan);
+  }
   .h-card::before {
     content: '';
     position: absolute;
@@ -633,6 +638,16 @@
     flex-shrink: 0;
   }
   .qr-chip:active { transform: scale(0.95); background: rgba(0,245,255,0.1); }
+  /* AI screen: no outer scroll — only messages area scrolls */
+  #screen-ai {
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+  .chat-bottom {
+    flex-shrink: 0;
+    background: var(--bg-primary);
+    padding-bottom: 80px; /* clear the fixed bottom nav */
+  }
   .chat-input-row {
     padding: 12px 16px;
     display: flex;
@@ -640,7 +655,6 @@
     align-items: center;
     border-top: 1px solid var(--border);
     background: var(--bg-primary);
-    position: sticky; bottom: 80px;
   }
   .chat-input {
     flex: 1;
@@ -1251,7 +1265,7 @@
   </div>
 
   <!-- ════ SCREEN 4: AI CHAT ════ -->
-  <div id="screen-ai" class="screen" style="padding-bottom:0">
+  <div id="screen-ai" class="screen">
 
     <div class="ai-header">
       <div class="ai-avatar">🤖</div>
@@ -1295,7 +1309,8 @@
       </div>
     </div>
 
-    <div class="quick-replies">
+    <div class="chat-bottom">
+    <div class="quick-replies" id="quick-replies">
       <div class="qr-chip" onclick="sendQuickReply(this)">💊 هل أدويتي مناسبة؟</div>
       <div class="qr-chip" onclick="sendQuickReply(this)">🏃 كم ساعة رياضة أحتاج؟</div>
       <div class="qr-chip" onclick="sendQuickReply(this)">🥗 نظام غذائي صحي</div>
@@ -1305,6 +1320,7 @@
     <div class="chat-input-row">
       <button class="send-btn" onclick="sendMessage()">➤</button>
       <input class="chat-input" id="chat-input" type="text" placeholder="اسأل عن صحتك...">
+    </div>
     </div>
   </div>
 
@@ -1462,6 +1478,13 @@
   /* ═══════════════════════════════
      NAVIGATION
   ═══════════════════════════════ */
+  const DEFAULT_CHIPS = [
+    '💊 هل أدويتي مناسبة؟',
+    '🏃 كم ساعة رياضة أحتاج؟',
+    '🥗 نظام غذائي صحي',
+    '😴 كم ساعة نوم مثالية؟',
+  ];
+
   function switchTab(id, el) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1471,6 +1494,20 @@
     const icon = el.querySelector('.nav-icon');
     icon.style.transform = 'scale(1.25)';
     setTimeout(() => icon.style.transform = '', 200);
+    // Restore quick-reply chips when visiting AI tab
+    if (id === 'ai') restoreChips();
+  }
+
+  function restoreChips() {
+    const qr = document.getElementById('quick-replies');
+    if (!qr || qr.querySelector('.qr-chip')) return;
+    DEFAULT_CHIPS.forEach(text => {
+      const chip = document.createElement('div');
+      chip.className = 'qr-chip';
+      chip.textContent = text;
+      chip.onclick = function() { sendQuickReply(this); };
+      qr.appendChild(chip);
+    });
   }
 
   /* ═══════════════════════════════
@@ -1606,43 +1643,74 @@
   function addMessage(text, who) {
     const messages = document.getElementById('chat-messages');
     const time = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-    const av = who === 'user'
-      ? `<div class="msg-av" style="background:linear-gradient(135deg,#7B2FFF,#00F5FF)">عم</div>`
-      : `<div class="msg-av">🤖</div>`;
-    const timeEl = who === 'user'
-      ? `<div class="msg-time" style="text-align:left">${time}</div>`
-      : `<div class="msg-time">${time}</div>`;
-    // Escape user text to prevent XSS; AI responses may contain <br> added by us
-    const safe = who === 'user'
-      ? text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')
-      : text.replace(/\n/g,'<br>');
-    messages.innerHTML += `
-      <div class="msg ${who}">
-        ${av}
-        <div>
-          <div class="msg-bubble">${safe}</div>
-          ${timeEl}
-        </div>
-      </div>`;
+
+    // Create message row
+    const row = document.createElement('div');
+    row.className = 'msg ' + who;
+
+    // Avatar
+    const av = document.createElement('div');
+    av.className = 'msg-av';
+    if (who === 'user') {
+      av.style.background = 'linear-gradient(135deg,#7B2FFF,#00F5FF)';
+      av.textContent = 'عم';
+    } else {
+      av.textContent = '🤖';
+    }
+
+    // Inner wrapper
+    const inner = document.createElement('div');
+
+    // Bubble
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    // Safe insertion: user text is escaped; AI responses use \n→<br>
+    if (who === 'user') {
+      bubble.textContent = text; // textContent auto-escapes — XSS safe
+    } else {
+      bubble.innerHTML = text.replace(/\n/g, '<br>');
+    }
+
+    // Time
+    const timeEl = document.createElement('div');
+    timeEl.className = 'msg-time';
+    if (who === 'user') timeEl.style.textAlign = 'left';
+    timeEl.textContent = time;
+
+    inner.appendChild(bubble);
+    inner.appendChild(timeEl);
+    row.appendChild(av);
+    row.appendChild(inner);
+    messages.appendChild(row);
     messages.scrollTop = messages.scrollHeight;
   }
 
   function simulateTyping(response) {
     const messages = document.getElementById('chat-messages');
-    const typingId = 'typing-' + Date.now();
-    messages.innerHTML += `
-      <div class="msg ai" id="${typingId}">
-        <div class="msg-av">🤖</div>
-        <div class="typing-indicator">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
-      </div>`;
+
+    // Build typing indicator element directly
+    const row = document.createElement('div');
+    row.className = 'msg ai';
+
+    const av = document.createElement('div');
+    av.className = 'msg-av';
+    av.textContent = '🤖';
+
+    const indicator = document.createElement('div');
+    indicator.className = 'typing-indicator';
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'typing-dot';
+      indicator.appendChild(dot);
+    }
+
+    row.appendChild(av);
+    row.appendChild(indicator);
+    messages.appendChild(row);
     messages.scrollTop = messages.scrollHeight;
+
     setTimeout(() => {
-      const el = document.getElementById(typingId);
-      if (el) el.remove();
+      if (row.parentNode) row.parentNode.removeChild(row);
       addMessage(response, 'ai');
     }, 1400 + Math.random() * 800);
   }
