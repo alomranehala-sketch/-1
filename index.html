@@ -2269,7 +2269,8 @@
     av.className = 'msg-av';
     if (who === 'user') {
       av.style.background = 'linear-gradient(135deg,#7B2FFF,#00F5FF)';
-      av.textContent = 'عم';
+      const uName = document.getElementById('profile-name') ? document.getElementById('profile-name').textContent.trim() : (localStorage.getItem('profile_name') || 'مستخدم');
+      av.textContent = getInitials(uName);
     } else {
       av.textContent = '🤖';
     }
