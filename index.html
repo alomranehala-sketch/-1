@@ -975,6 +975,38 @@
   }
   .modal-btn.private:active { box-shadow: 0 0 20px rgba(0,145,110,0.4); }
 
+  /* ─── HOSPITAL LIST ─── */
+  .modal-list {
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 230px; overflow-y: auto;
+    margin-bottom: 20px;
+    scrollbar-width: thin;
+  }
+  .modal-list:empty { display: none; }
+  .hosp-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .hosp-card-top { display: flex; align-items: center; gap: 8px; }
+  .hosp-badge {
+    font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .hosp-badge.govt    { background: #0096c720; color: #0096c7; border: 1px solid #0096c740; }
+  .hosp-badge.private { background: #00916e20; color: #00916e; border: 1px solid #00916e40; }
+  .hosp-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .hosp-meta { display: flex; gap: 16px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; }
+  .hosp-meta span { display: flex; align-items: center; gap: 4px; }
+  .hosp-phone-link {
+    color: var(--neon-cyan);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
   /* ─── UTILS ─── */
   .spacer { height: 12px; }
 
@@ -1499,6 +1531,7 @@
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-title"></div>
     <div class="modal-sub"  id="modal-sub"></div>
+    <div class="modal-list" id="modal-list"></div>
     <div class="modal-actions" id="modal-actions"></div>
   </div>
 </div>
@@ -1713,19 +1746,83 @@
   }
 
   // Location-aware modal for hospitals / pharmacies
+  // Sample hospital data (representative; real nearby results open via Google Maps)
+  const HOSPITALS = [
+    { type:'govt',    name:'مستشفى الملك فهد',               hours:'24 ساعة',  phone:'920001234' },
+    { type:'govt',    name:'مجمع الأمير سلطان الطبي',        hours:'24 ساعة',  phone:'920002345' },
+    { type:'govt',    name:'مستشفى الولادة والأطفال',        hours:'7ص – 9م',  phone:'920003456' },
+    { type:'private', name:'مستشفى الدكتور سليمان الحبيب',  hours:'24 ساعة',  phone:'920004567' },
+    { type:'private', name:'المستشفى السعودي الألماني',      hours:'24 ساعة',  phone:'920005678' },
+    { type:'private', name:'مستشفى بخش',                    hours:'8ص – 10م', phone:'920006789' },
+  ];
+
+  function buildHospList(filter) {
+    const listEl = document.getElementById('modal-list');
+    listEl.innerHTML = '';
+    const items = filter ? HOSPITALS.filter(h => h.type === filter) : HOSPITALS;
+    items.forEach(h => {
+      const card = document.createElement('div');
+      card.className = 'hosp-card';
+
+      const top = document.createElement('div');
+      top.className = 'hosp-card-top';
+
+      const badge = document.createElement('span');
+      badge.className = 'hosp-badge ' + h.type;
+      badge.textContent = h.type === 'govt' ? '🏛 حكومي' : '🏢 خاص';
+
+      const name = document.createElement('span');
+      name.className = 'hosp-name';
+      name.textContent = h.name;
+
+      top.appendChild(badge);
+      top.appendChild(name);
+
+      const meta = document.createElement('div');
+      meta.className = 'hosp-meta';
+
+      const hoursSpan = document.createElement('span');
+      hoursSpan.textContent = '🕐 ' + h.hours;
+
+      const phoneSpan = document.createElement('span');
+      const phoneIcon = document.createTextNode('📞 ');
+      const phoneLink = document.createElement('a');
+      phoneLink.className = 'hosp-phone-link';
+      phoneLink.href = 'tel:' + h.phone;
+      phoneLink.textContent = h.phone;
+      phoneSpan.appendChild(phoneIcon);
+      phoneSpan.appendChild(phoneLink);
+
+      meta.appendChild(hoursSpan);
+      meta.appendChild(phoneSpan);
+
+      card.appendChild(top);
+      card.appendChild(meta);
+      listEl.appendChild(card);
+    });
+  }
+
+  function filterHosp(type) {
+    buildHospList(type);
+    openMapReal('hospital_' + type);
+  }
+
   function openLocationModal(type) {
     const isHospital = type === 'hospitals';
     document.getElementById('modal-title').textContent = isHospital ? '📍 مستشفيات قريبة' : '💊 صيدليات قريبة';
     const subEl = document.getElementById('modal-sub');
     const actEl = document.getElementById('modal-actions');
+    const listEl = document.getElementById('modal-list');
 
     if (isHospital) {
+      buildHospList(null); // show all by default
       actEl.innerHTML = `
-        <button type="button" class="modal-btn govt"    onclick="openMapReal('hospital_gov')">🏛 حكومي</button>
-        <button type="button" class="modal-btn private" onclick="openMapReal('hospital_private')">🏢 خاص</button>
+        <button type="button" class="modal-btn govt"    onclick="filterHosp('govt')">🏛 حكومي</button>
+        <button type="button" class="modal-btn private" onclick="filterHosp('private')">🏢 خاص</button>
         <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
       `;
     } else {
+      listEl.innerHTML = '';
       actEl.innerHTML = `
         <button type="button" class="modal-btn primary" onclick="openMapReal('pharmacy')">🗺 فتح الخريطة</button>
         <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
@@ -1736,7 +1833,7 @@
     function setSubReady() {
       const place = userCity ? `📍 موقعك: ${userCity}` : '📍 تم تحديد موقعك';
       subEl.textContent = isHospital
-        ? `${place}\n\n🏛 حكومي — مستشفيات وزارة الصحة والمستشفيات الحكومية.\n🏢 خاص — المستشفيات والعيادات الخاصة القريبة.`
+        ? `${place} — اضغط نوع المستشفى لعرضه على الخريطة.`
         : `${place}\n\n💊 اضغط "فتح الخريطة" لعرض الصيدليات القريبة منك على خرائط Google.`;
     }
 
