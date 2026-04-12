@@ -324,203 +324,432 @@ class ApiService {
   // ── OTP Auth (Feature 1) ─────────────────────────────────
   static Future<Map<String, dynamic>> sendOtp(String phone) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/auth/otp/send'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'phone': phone}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/auth/otp/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false, 'error': 'فشل الاتصال'}; }
+    } catch (_) {
+      return {'success': false, 'error': 'فشل الاتصال'};
+    }
   }
 
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String code) async {
+  static Future<Map<String, dynamic>> verifyOtp(
+    String phone,
+    String code,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/auth/otp/verify'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'phone': phone, 'code': code}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/auth/otp/verify'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone, 'code': code}),
+      );
       final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (res.statusCode == 200 && data['token'] != null) _token = data['token'] as String;
+      if (res.statusCode == 200 && data['token'] != null)
+        _token = data['token'] as String;
       return data;
-    } catch (_) { return {'success': false, 'error': 'فشل الاتصال'}; }
+    } catch (_) {
+      return {'success': false, 'error': 'فشل الاتصال'};
+    }
   }
 
   // ── Resident Registration (Feature 16) ───────────────────
-  static Future<Map<String, dynamic>> registerResident({required String name, required String phone, String? passportNumber, String? nationality, String? birthDate, String? gender}) async {
+  static Future<Map<String, dynamic>> registerResident({
+    required String name,
+    required String phone,
+    String? passportNumber,
+    String? nationality,
+    String? birthDate,
+    String? gender,
+  }) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/auth/register/resident'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'name': name, 'phone': phone, 'passportNumber': passportNumber, 'nationality': nationality, 'birthDate': birthDate, 'gender': gender}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/auth/register/resident'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'phone': phone,
+          'passportNumber': passportNumber,
+          'nationality': nationality,
+          'birthDate': birthDate,
+          'gender': gender,
+        }),
+      );
       final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (res.statusCode == 200 && data['token'] != null) _token = data['token'] as String;
+      if (res.statusCode == 200 && data['token'] != null)
+        _token = data['token'] as String;
       return data;
-    } catch (_) { return {'success': false, 'error': 'فشل الاتصال'}; }
+    } catch (_) {
+      return {'success': false, 'error': 'فشل الاتصال'};
+    }
   }
 
   // ── Update Profile (Feature 19) ──────────────────────────
-  static Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateProfile(
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final res = await http.put(Uri.parse('$_baseUrl/user/profile'), headers: _headers, body: jsonEncode(data));
+      final res = await http.put(
+        Uri.parse('$_baseUrl/user/profile'),
+        headers: _headers,
+        body: jsonEncode(data),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Family Link (Feature 11) ─────────────────────────────
   static Future<List<Map<String, dynamic>>> getFamilyMembers() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/family/members'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/family/members'),
+        headers: _headers,
+      );
       return List<Map<String, dynamic>>.from(jsonDecode(res.body) as List);
-    } catch (_) { return []; }
+    } catch (_) {
+      return [];
+    }
   }
 
-  static Future<Map<String, dynamic>> addFamilyMember(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> addFamilyMember(
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/family/members'), headers: _headers, body: jsonEncode(data));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/family/members'),
+        headers: _headers,
+        body: jsonEncode(data),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Smart Booking (Feature 4, 6) ─────────────────────────
-  static Future<List<Map<String, dynamic>>> smartBookingSearch({String? specialty, String? governorate, String? urgency}) async {
+  static Future<List<Map<String, dynamic>>> smartBookingSearch({
+    String? specialty,
+    String? governorate,
+    String? urgency,
+  }) async {
     try {
       final params = <String, String>{};
       if (specialty != null) params['specialty'] = specialty;
       if (governorate != null) params['governorate'] = governorate;
       if (urgency != null) params['urgency'] = urgency;
-      final uri = Uri.parse('$_baseUrl/booking/smart-search').replace(queryParameters: params.isNotEmpty ? params : null);
+      final uri = Uri.parse(
+        '$_baseUrl/booking/smart-search',
+      ).replace(queryParameters: params.isNotEmpty ? params : null);
       final res = await http.get(uri, headers: _headers);
       return List<Map<String, dynamic>>.from(jsonDecode(res.body) as List);
-    } catch (_) { return []; }
+    } catch (_) {
+      return [];
+    }
   }
 
-  static Future<Map<String, dynamic>> rescheduleAppointment(String aptId, String newDate, String newTime) async {
+  static Future<Map<String, dynamic>> rescheduleAppointment(
+    String aptId,
+    String newDate,
+    String newTime,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/booking/reschedule'), headers: _headers, body: jsonEncode({'appointmentId': aptId, 'newDate': newDate, 'newTime': newTime}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/booking/reschedule'),
+        headers: _headers,
+        body: jsonEncode({
+          'appointmentId': aptId,
+          'newDate': newDate,
+          'newTime': newTime,
+        }),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Medication Delivery & Refill (Feature 8, 9) ──────────
   static Future<Map<String, dynamic>> refillMedication(String medId) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/medications/refill'), headers: _headers, body: jsonEncode({'medicationId': medId}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/medications/refill'),
+        headers: _headers,
+        body: jsonEncode({'medicationId': medId}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
-  static Future<Map<String, dynamic>> orderMedicationDelivery({required List<String> medicationIds, String? address, String? phone}) async {
+  static Future<Map<String, dynamic>> orderMedicationDelivery({
+    required List<String> medicationIds,
+    String? address,
+    String? phone,
+  }) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/medications/deliver'), headers: _headers, body: jsonEncode({'medicationIds': medicationIds, 'address': address, 'phone': phone}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/medications/deliver'),
+        headers: _headers,
+        body: jsonEncode({
+          'medicationIds': medicationIds,
+          'address': address,
+          'phone': phone,
+        }),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Notification Settings (Feature 5, 13) ────────────────
   static Future<Map<String, dynamic>> getNotificationSettings() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/notifications/settings'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/notifications/settings'),
+        headers: _headers,
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {}; }
+    } catch (_) {
+      return {};
+    }
   }
 
-  static Future<Map<String, dynamic>> updateNotificationSettings(Map<String, dynamic> settings) async {
+  static Future<Map<String, dynamic>> updateNotificationSettings(
+    Map<String, dynamic> settings,
+  ) async {
     try {
-      final res = await http.put(Uri.parse('$_baseUrl/notifications/settings'), headers: _headers, body: jsonEncode(settings));
+      final res = await http.put(
+        Uri.parse('$_baseUrl/notifications/settings'),
+        headers: _headers,
+        body: jsonEncode(settings),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Geofence (Feature 13) ────────────────────────────────
-  static Future<Map<String, dynamic>> geofenceCheckin(double lat, double lng, String hospitalId) async {
+  static Future<Map<String, dynamic>> geofenceCheckin(
+    double lat,
+    double lng,
+    String hospitalId,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/geofence/checkin'), headers: _headers, body: jsonEncode({'lat': lat, 'lng': lng, 'hospitalId': hospitalId}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/geofence/checkin'),
+        headers: _headers,
+        body: jsonEncode({'lat': lat, 'lng': lng, 'hospitalId': hospitalId}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Home Nursing (Feature 12) ────────────────────────────
-  static Future<Map<String, dynamic>> bookNursingService({required String serviceId, required String date, required String time, String? address, String? patientName}) async {
+  static Future<Map<String, dynamic>> bookNursingService({
+    required String serviceId,
+    required String date,
+    required String time,
+    String? address,
+    String? patientName,
+  }) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/nursing/book'), headers: _headers, body: jsonEncode({'serviceId': serviceId, 'date': date, 'time': time, 'address': address, 'patientName': patientName}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/nursing/book'),
+        headers: _headers,
+        body: jsonEncode({
+          'serviceId': serviceId,
+          'date': date,
+          'time': time,
+          'address': address,
+          'patientName': patientName,
+        }),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Wearable Devices (Feature 14) ────────────────────────
-  static Future<Map<String, dynamic>> syncDeviceReadings(String deviceType, Map<String, dynamic> readings) async {
+  static Future<Map<String, dynamic>> syncDeviceReadings(
+    String deviceType,
+    Map<String, dynamic> readings,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/devices/sync'), headers: _headers, body: jsonEncode({'deviceType': deviceType, 'readings': readings}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/devices/sync'),
+        headers: _headers,
+        body: jsonEncode({'deviceType': deviceType, 'readings': readings}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Payments (Feature 15) ────────────────────────────────
   static Future<List<Map<String, dynamic>>> getBills() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/payments/bills'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/payments/bills'),
+        headers: _headers,
+      );
       return List<Map<String, dynamic>>.from(jsonDecode(res.body) as List);
-    } catch (_) { return []; }
+    } catch (_) {
+      return [];
+    }
   }
 
-  static Future<Map<String, dynamic>> payBill(String billId, {String method = 'بطاقة'}) async {
+  static Future<Map<String, dynamic>> payBill(
+    String billId, {
+    String method = 'بطاقة',
+  }) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/payments/pay'), headers: _headers, body: jsonEncode({'billId': billId, 'method': method}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/payments/pay'),
+        headers: _headers,
+        body: jsonEncode({'billId': billId, 'method': method}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── Health Tips (Feature 18) ─────────────────────────────
   static Future<Map<String, dynamic>> getDailyTips() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/health/tips'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/health/tips'),
+        headers: _headers,
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'tips': []}; }
+    } catch (_) {
+      return {'tips': []};
+    }
   }
 
   // ── Chronic Care Plans (Feature 17) ──────────────────────
   static Future<List<Map<String, dynamic>>> getChronicPlans() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/chronic/plans'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/chronic/plans'),
+        headers: _headers,
+      );
       return List<Map<String, dynamic>>.from(jsonDecode(res.body) as List);
-    } catch (_) { return []; }
+    } catch (_) {
+      return [];
+    }
   }
 
   // ── Offline Wallet Data (Feature 2, 3) ───────────────────
   static Future<Map<String, dynamic>> getOfflineWalletData() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/wallet/offline-data'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/wallet/offline-data'),
+        headers: _headers,
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {}; }
+    } catch (_) {
+      return {};
+    }
   }
 
   // ── HMS Lab Ready (Feature 31) ───────────────────────────
-  static Future<Map<String, dynamic>> notifyLabReady(String patientId, String labName) async {
+  static Future<Map<String, dynamic>> notifyLabReady(
+    String patientId,
+    String labName,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/hms/lab-ready'), headers: _headers, body: jsonEncode({'patientId': patientId, 'labName': labName}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/hms/lab-ready'),
+        headers: _headers,
+        body: jsonEncode({'patientId': patientId, 'labName': labName}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── HMS ER Registration (Feature 32) ─────────────────────
-  static Future<Map<String, dynamic>> registerErCase({required String name, required int age, required String gender, required String complaint, String? severity, Map<String, dynamic>? vitals}) async {
+  static Future<Map<String, dynamic>> registerErCase({
+    required String name,
+    required int age,
+    required String gender,
+    required String complaint,
+    String? severity,
+    Map<String, dynamic>? vitals,
+  }) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/hms/er/register'), headers: _headers, body: jsonEncode({'name': name, 'age': age, 'gender': gender, 'complaint': complaint, 'severity': severity, 'vitals': vitals}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/hms/er/register'),
+        headers: _headers,
+        body: jsonEncode({
+          'name': name,
+          'age': age,
+          'gender': gender,
+          'complaint': complaint,
+          'severity': severity,
+          'vitals': vitals,
+        }),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── HMS Redistribute (Feature 24) ────────────────────────
-  static Future<Map<String, dynamic>> redistributeAppointments(String doctorId, String reason) async {
+  static Future<Map<String, dynamic>> redistributeAppointments(
+    String doctorId,
+    String reason,
+  ) async {
     try {
-      final res = await http.post(Uri.parse('$_baseUrl/hms/redistribute'), headers: _headers, body: jsonEncode({'doctorId': doctorId, 'reason': reason}));
+      final res = await http.post(
+        Uri.parse('$_baseUrl/hms/redistribute'),
+        headers: _headers,
+        body: jsonEncode({'doctorId': doctorId, 'reason': reason}),
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {'success': false}; }
+    } catch (_) {
+      return {'success': false};
+    }
   }
 
   // ── MOH Multi-Source (Feature 40) ────────────────────────
   static Future<Map<String, dynamic>> getMohDataSources() async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/moh/data-sources'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/moh/data-sources'),
+        headers: _headers,
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {}; }
+    } catch (_) {
+      return {};
+    }
   }
 
   // ── Hakeem Integration (Feature 43) ──────────────────────
-  static Future<Map<String, dynamic>> getHakeemPatient(String nationalId) async {
+  static Future<Map<String, dynamic>> getHakeemPatient(
+    String nationalId,
+  ) async {
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/hakeem/patient/$nationalId'), headers: _headers);
+      final res = await http.get(
+        Uri.parse('$_baseUrl/hakeem/patient/$nationalId'),
+        headers: _headers,
+      );
       return jsonDecode(res.body) as Map<String, dynamic>;
-    } catch (_) { return {}; }
+    } catch (_) {
+      return {};
+    }
   }
 }
