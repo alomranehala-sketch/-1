@@ -1333,10 +1333,11 @@
 
     <div class="ai-header">
       <div class="ai-avatar">🤖</div>
-      <div>
+      <div style="flex:1">
         <div class="ai-name">صحة AI المساعد</div>
         <div class="ai-status">متصل الآن</div>
       </div>
+      <button type="button" onclick="clearChat()" style="background:none;border:none;cursor:pointer;font-size:18px;opacity:0.6;padding:4px 8px;" title="مسح المحادثة">🗑️</button>
     </div>
 
     <div class="chat-messages" id="chat-messages">
@@ -1582,6 +1583,15 @@
       chip.onclick = function() { sendQuickReply(this); };
       qr.appendChild(chip);
     });
+  }
+
+  function clearChat() {
+    const messages = document.getElementById('chat-messages');
+    messages.innerHTML = '';
+    // Restore the welcome message
+    addMessage('مرحباً! 👋 كيف يمكنني مساعدتك اليوم؟', 'ai');
+    restoreChips();
+    showToast('تم مسح المحادثة ✓');
   }
 
   /* ═══════════════════════════════
@@ -2041,22 +2051,26 @@
   (function applyTheme() {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   })();
+  function syncThemeUI() {
+    const sw   = document.getElementById('toggle-sw');
+    const icon = document.getElementById('theme-icon');
+    const lbl  = document.getElementById('theme-label');
+    if (!sw) return;
+    if (!isDark) {
+      sw.classList.add('on');
+      icon.textContent = '☀️';
+      lbl.textContent  = 'الوضع النهاري';
+    } else {
+      sw.classList.remove('on');
+      icon.textContent = '🌙';
+      lbl.textContent  = 'الوضع الليلي';
+    }
+  }
   function toggleTheme() {
     isDark = !isDark;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    const sw = document.getElementById('toggle-sw');
-    const icon = document.getElementById('theme-icon');
-    const label = document.getElementById('theme-label');
-    if (!isDark) {
-      sw.classList.add('on');
-      icon.textContent = '☀️';
-      label.textContent = 'الوضع النهاري';
-    } else {
-      sw.classList.remove('on');
-      icon.textContent = '🌙';
-      label.textContent = 'الوضع الليلي';
-    }
+    syncThemeUI();
   }
 
   /* ═══════════════════════════════
@@ -2108,6 +2122,7 @@
   }
 
   drawQR();
+  syncThemeUI();   // Sync toggle UI with saved theme on load
   initLocation(); // Start GPS detection immediately
 
   /* ═══════════════════════════════
