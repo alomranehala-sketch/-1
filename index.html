@@ -942,7 +942,7 @@
   }
   .modal-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
   .modal-sub   { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; white-space: pre-line; }
-  .modal-actions { display: flex; gap: 12px; }
+  .modal-actions { display: flex; gap: 12px; flex-wrap: wrap; }
   .modal-btn {
     flex: 1;
     padding: 14px;
@@ -964,6 +964,16 @@
     border: 1px solid var(--border);
     color: var(--text-primary);
   }
+  .modal-btn.govt {
+    background: linear-gradient(135deg, #0096c7, #0077b6);
+    color: #fff;
+  }
+  .modal-btn.govt:active { box-shadow: 0 0 20px rgba(0,150,199,0.4); }
+  .modal-btn.private {
+    background: linear-gradient(135deg, #00916e, #007a5e);
+    color: #fff;
+  }
+  .modal-btn.private:active { box-shadow: 0 0 20px rgba(0,145,110,0.4); }
 
   /* ─── UTILS ─── */
   .spacer { height: 12px; }
@@ -1675,7 +1685,11 @@
   // Open Google Maps near user for given search type
   function openMapReal(type) {
     closeModal();
-    const query = type === 'hospital' ? 'مستشفى' : 'صيدلية';
+    let query;
+    if (type === 'hospital_gov')     query = 'مستشفى حكومي';
+    else if (type === 'hospital_private') query = 'مستشفى خاص';
+    else if (type === 'pharmacy')    query = 'صيدلية';
+    else                             query = 'مستشفى';
     if (userLat && userLng) {
       window.open(
         `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${userLat},${userLng},15z`,
@@ -1704,16 +1718,25 @@
     document.getElementById('modal-title').textContent = isHospital ? '📍 مستشفيات قريبة' : '💊 صيدليات قريبة';
     const subEl = document.getElementById('modal-sub');
     const actEl = document.getElementById('modal-actions');
-    actEl.innerHTML = `
-      <button type="button" class="modal-btn primary" onclick="openMapReal('${isHospital ? 'hospital' : 'pharmacy'}')">🗺 فتح الخريطة</button>
-      <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
-    `;
+
+    if (isHospital) {
+      actEl.innerHTML = `
+        <button type="button" class="modal-btn govt"    onclick="openMapReal('hospital_gov')">🏛 حكومي</button>
+        <button type="button" class="modal-btn private" onclick="openMapReal('hospital_private')">🏢 خاص</button>
+        <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
+      `;
+    } else {
+      actEl.innerHTML = `
+        <button type="button" class="modal-btn primary" onclick="openMapReal('pharmacy')">🗺 فتح الخريطة</button>
+        <button type="button" class="modal-btn secondary" onclick="closeModal()">إغلاق</button>
+      `;
+    }
     document.getElementById('modal').classList.add('open');
 
     function setSubReady() {
       const place = userCity ? `📍 موقعك: ${userCity}` : '📍 تم تحديد موقعك';
       subEl.textContent = isHospital
-        ? `${place}\n\n🏥 اضغط "فتح الخريطة" لعرض المستشفيات القريبة منك على خرائط Google.`
+        ? `${place}\n\n🏛 حكومي — مستشفيات وزارة الصحة والمستشفيات الحكومية.\n🏢 خاص — المستشفيات والعيادات الخاصة القريبة.`
         : `${place}\n\n💊 اضغط "فتح الخريطة" لعرض الصيدليات القريبة منك على خرائط Google.`;
     }
 
