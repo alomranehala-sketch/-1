@@ -53,7 +53,7 @@ export class UsersService {
 
     const [items, total] = await qb.getManyAndCount();
     return {
-      items: items.map((u) => this.sanitize(u)),
+      items: items.map((u: User) => this.sanitize(u)),
       total,
       page,
       limit,
@@ -73,7 +73,7 @@ export class UsersService {
       avatarUrl: user.avatarUrl,
       role: user.role,
       isActive: user.isActive,
-      isEmailVerified: user.isEmailVerified,
+      isPhoneVerified: user.isPhoneVerified,
       createdAt: user.createdAt,
     };
   }

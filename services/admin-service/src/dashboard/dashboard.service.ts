@@ -68,7 +68,7 @@ export class DashboardService {
       .orderBy('date', 'ASC')
       .getRawMany();
 
-    return result.map((r) => ({ date: r.date, count: parseInt(r.count, 10) }));
+    return result.map((r: any) => ({ date: r.date, count: parseInt(r.count, 10) }));
   }
 
   async getUsersByRole(): Promise<{ role: string; count: number }[]> {
@@ -79,7 +79,7 @@ export class DashboardService {
       .groupBy('user.role')
       .getRawMany();
 
-    return result.map((r) => ({ role: r.role, count: parseInt(r.count, 10) }));
+    return result.map((r: any) => ({ role: r.role, count: parseInt(r.count, 10) }));
   }
 
   async getAppointmentStats(days = 30): Promise<Record<string, any>> {
@@ -104,8 +104,8 @@ export class DashboardService {
       .getRawMany();
 
     return {
-      byStatus: statusCounts.map((r) => ({ status: r.status, count: parseInt(r.count, 10) })),
-      dailyTrend: dailyTrend.map((r) => ({ date: r.date, count: parseInt(r.count, 10) })),
+      byStatus: statusCounts.map((r: any) => ({ status: r.status, count: parseInt(r.count, 10) })),
+      dailyTrend: dailyTrend.map((r: any) => ({ date: r.date, count: parseInt(r.count, 10) })),
     };
   }
 
@@ -125,8 +125,8 @@ export class DashboardService {
       .getRawMany();
 
     return {
-      byStatus: statusCounts.map((r) => ({ status: r.status, count: parseInt(r.count, 10) })),
-      byChannel: channelCounts.map((r) => ({ channel: r.channel, count: parseInt(r.count, 10) })),
+      byStatus: statusCounts.map((r: any) => ({ status: r.status, count: parseInt(r.count, 10) })),
+      byChannel: channelCounts.map((r: any) => ({ channel: r.channel, count: parseInt(r.count, 10) })),
     };
   }
 
@@ -153,8 +153,8 @@ export class DashboardService {
     ]);
 
     return {
-      bySeverity: severityCounts.map((r) => ({ severity: r.severity, count: parseInt(r.count, 10) })),
-      byStatus: statusCounts.map((r) => ({ status: r.status, count: parseInt(r.count, 10) })),
+      bySeverity: severityCounts.map((r: any) => ({ severity: r.severity, count: parseInt(r.count, 10) })),
+      byStatus: statusCounts.map((r: any) => ({ status: r.status, count: parseInt(r.count, 10) })),
       currentlyActive: totalActive,
     };
   }

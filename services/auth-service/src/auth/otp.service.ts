@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException, TooManyRequestsException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import * as crypto from 'crypto';
@@ -29,8 +29,9 @@ export class OtpService {
     const rateLimitKey = `otp:ratelimit:${normalizedPhone}`;
     const isRateLimited = await this.redis.exists(rateLimitKey);
     if (isRateLimited) {
-      throw new TooManyRequestsException(
+      throw new HttpException(
         'يرجى الانتظار دقيقة واحدة قبل طلب رمز جديد', // Please wait 1 minute
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 

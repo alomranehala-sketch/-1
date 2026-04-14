@@ -471,11 +471,14 @@ class _PharmaciesHubScreenState extends State<PharmaciesHubScreen>
                 size: 14,
                 color: Color(0xFF8B5CF6),
               ),
-              Text(
-                ' ${p.hours}',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textLight,
+              Flexible(
+                child: Text(
+                  ' ${p.hours}',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textLight,
+                  ),
                 ),
               ),
               const Spacer(),

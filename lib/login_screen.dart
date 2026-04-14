@@ -927,12 +927,16 @@ class _LoginScreenState extends State<LoginScreen>
             children: [
               Icon(icon, color: _blueLight, size: 18),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: _textPrimary,
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
                 ),
               ),
             ],

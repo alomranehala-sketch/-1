@@ -155,11 +155,11 @@ class _MohEquityScreenState extends State<MohEquityScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              _chip('12', 'محافظة', const Color(0xFF3B82F6)),
+              Expanded(child: _chip('12', 'محافظة', const Color(0xFF3B82F6))),
               const SizedBox(width: 8),
-              _chip('2,208', 'طبيب', const Color(0xFF10B981)),
+              Expanded(child: _chip('2,208', 'طبيب', const Color(0xFF10B981))),
               const SizedBox(width: 8),
-              _chip('68%', 'الحجوزات لعمّان', const Color(0xFFF59E0B)),
+              Expanded(child: _chip('68%', 'الحجوزات لعمّان', const Color(0xFFF59E0B))),
             ],
           ),
         ],

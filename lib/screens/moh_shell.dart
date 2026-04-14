@@ -81,6 +81,8 @@ class _MohShellState extends State<MohShell> {
                             const SizedBox(height: 4),
                             Text(
                               _navItems[i].label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: active

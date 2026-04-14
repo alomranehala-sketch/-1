@@ -627,11 +627,14 @@ class _SmartBookingScreenState extends State<SmartBookingScreen>
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          r.location,
-                          style: const TextStyle(
-                            color: AppColors.textLight,
-                            fontSize: 11,
+                        Expanded(
+                          child: Text(
+                            r.location,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textLight,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ],

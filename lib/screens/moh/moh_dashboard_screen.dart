@@ -232,11 +232,11 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 8,
       mainAxisSpacing: 8,
-      childAspectRatio: 1.0,
+      childAspectRatio: 0.78,
       children: items
           .map(
             (item) => Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
@@ -245,25 +245,31 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(item.icon, color: item.color, size: 22),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.value,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: item.color,
+                  Icon(item.icon, color: item.color, size: 20),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      item.value,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: item.color,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    item.label,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Colors.white.withAlpha(100),
+                  Flexible(
+                    child: Text(
+                      item.label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: Colors.white.withAlpha(100),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
                   ),
                 ],
               ),

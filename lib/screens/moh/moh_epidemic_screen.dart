@@ -193,22 +193,28 @@ class _MohEpidemicScreenState extends State<MohEpidemicScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              _metricChip(
-                '${_chiData.length}',
-                'محافظة مراقبة',
-                const Color(0xFF10B981),
+              Expanded(
+                child: _metricChip(
+                  '${_chiData.length}',
+                  'محافظة مراقبة',
+                  const Color(0xFF10B981),
+                ),
               ),
               const SizedBox(width: 8),
-              _metricChip(
-                '${_alerts.where((a) => a.level == 'أحمر').length}',
-                'إنذار أحمر',
-                const Color(0xFFEF4444),
+              Expanded(
+                child: _metricChip(
+                  '${_alerts.where((a) => a.level == 'أحمر').length}',
+                  'إنذار أحمر',
+                  const Color(0xFFEF4444),
+                ),
               ),
               const SizedBox(width: 8),
-              _metricChip(
-                '${_alerts.where((a) => a.level == 'برتقالي').length}',
-                'إنذار برتقالي',
-                const Color(0xFFF59E0B),
+              Expanded(
+                child: _metricChip(
+                  '${_alerts.where((a) => a.level == 'برتقالي').length}',
+                  'إنذار برتقالي',
+                  const Color(0xFFF59E0B),
+                ),
               ),
             ],
           ),

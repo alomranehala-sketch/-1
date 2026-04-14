@@ -71,7 +71,7 @@ export class LangChainAgentService {
     );
 
     const getHospitalRankingTool = tool(
-      async (input) => {
+      async (input: any) => {
         const hospitals = input.specialization
           ? this.hospitalService.getTopHospitals(5, input.specialization)
           : this.hospitalService.getTopHospitals(5);
@@ -93,7 +93,7 @@ export class LangChainAgentService {
     );
 
     const getHospitalScoreTool = tool(
-      async (input) => {
+      async (input: any) => {
         const score = this.hospitalService.getScore(input.hospitalName);
         if (!score) return JSON.stringify({ error: 'Hospital not found' });
         return JSON.stringify({
@@ -130,7 +130,7 @@ export class LangChainAgentService {
     );
 
     const emitEventTool = tool(
-      async (input) => {
+      async (input: any) => {
         const event = input.eventType as HealthcareEvent;
         const correlationId = this.eventBus.emit(event, userId, input.data || {}, input.priority as any);
         return JSON.stringify({ success: true, correlationId, event });
@@ -140,7 +140,7 @@ export class LangChainAgentService {
         description: 'Emit a healthcare event to trigger system actions (e.g., user_submitted_symptoms, appointment_booked)',
         schema: z.object({
           eventType: z.string().describe('Event type from HealthcareEvent enum'),
-          data: z.record(z.any()).optional().describe('Event payload data'),
+          data: z.record(z.string(), z.any()).optional().describe('Event payload data'),
           priority: z.enum(['low', 'medium', 'high', 'emergency']).optional().describe('Event priority'),
         }),
       },

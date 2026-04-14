@@ -173,11 +173,11 @@ class _MohReportsScreenState extends State<MohReportsScreen> {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 8,
       mainAxisSpacing: 8,
-      childAspectRatio: 1.6,
+      childAspectRatio: 0.9,
       children: items
           .map(
             (kpi) => Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
@@ -211,16 +211,22 @@ class _MohReportsScreenState extends State<MohReportsScreen> {
                       ),
                     ],
                   ),
-                  Text(
-                    kpi.value,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: kpi.color,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      kpi.value,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: kpi.color,
+                      ),
                     ),
                   ),
                   Text(
                     kpi.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.white.withAlpha(100),

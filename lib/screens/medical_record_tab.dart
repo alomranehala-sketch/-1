@@ -552,11 +552,14 @@ class _MedicalRecordTabState extends State<MedicalRecordTab> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      '• $note',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textLight,
+                    Expanded(
+                      child: Text(
+                        '• $note',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textLight,
+                        ),
                       ),
                     ),
                   ],
