@@ -6,7 +6,7 @@ metadata:
   labels:
     app: admin-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: admin-service
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: admin-service
-          image: ghcr.io/OWNER/REPO/admin-service:latest
+          image: ghcr.io/alomranehala-sketch/healthcare/admin-service:latest
           ports:
             - containerPort: 3007
           envFrom:

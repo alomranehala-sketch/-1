@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: ghcr.io/OWNER/REPO/auth-service:latest
+          image: ghcr.io/alomranehala-sketch/healthcare/auth-service:latest
           ports:
             - containerPort: 3001
           envFrom:

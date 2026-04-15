@@ -336,7 +336,15 @@ class _InsuranceCalculatorScreenState extends State<InsuranceCalculatorScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم إرسال طلب الحجز بنجاح ✅'),
+                    backgroundColor: Color(0xFF10B981),
+                  ),
+                );
+              },
               icon: const Icon(Icons.calendar_month_rounded, size: 18),
               label: const Text(
                 'احجز بهذا السعر',

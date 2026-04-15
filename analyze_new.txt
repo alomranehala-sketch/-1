@@ -1,0 +1,6 @@
+﻿Analyzing lib...
+
+   info - screens\hms\hms_patients_screen.dart:460:19 - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\hms\hms_patients_screen.dart:462:19 - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+
+2 issues found.

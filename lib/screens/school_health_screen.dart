@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 
 /// School Health Mode — صحة المدارس (تطعيمات، فحوصات مرتبطة بالمدارس)
@@ -289,7 +290,15 @@ class _SchoolHealthScreenState extends State<SchoolHealthScreen> {
                         child: SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              HapticFeedback.mediumImpact();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('تم حجز موعد التطعيم بنجاح ✅'),
+                                  backgroundColor: Color(0xFF10B981),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,

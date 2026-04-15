@@ -494,7 +494,16 @@ class _SmartBookingScreenState extends State<SmartBookingScreen>
   Widget _aiActionBtn(String label, IconData icon, Color color) {
     return Expanded(
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$label — قريباً 🔜'),
+              backgroundColor: const Color(0xFF3B82F6),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        },
         icon: Icon(icon, size: 16),
         label: Text(
           label,

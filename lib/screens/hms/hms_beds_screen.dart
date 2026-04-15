@@ -31,8 +31,14 @@ class _HmsBedsScreenState extends State<HmsBedsScreen> {
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
-    final beds = (_data['beds'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final summary = _data['summary'] as Map<String, dynamic>? ?? {};
+    final beds =
+        (_data['beds'] as List?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
+        [];
+    final summary = _data['summary'] != null
+        ? Map<String, dynamic>.from(_data['summary'] as Map)
+        : <String, dynamic>{};
 
     return Column(
       children: [

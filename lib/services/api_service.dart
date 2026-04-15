@@ -346,8 +346,9 @@ class ApiService {
         body: jsonEncode({'phone': phone, 'code': code}),
       );
       final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (res.statusCode == 200 && data['token'] != null)
+      if (res.statusCode == 200 && data['token'] != null) {
         _token = data['token'] as String;
+      }
       return data;
     } catch (_) {
       return {'success': false, 'error': 'فشل الاتصال'};
@@ -377,8 +378,9 @@ class ApiService {
         }),
       );
       final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (res.statusCode == 200 && data['token'] != null)
+      if (res.statusCode == 200 && data['token'] != null) {
         _token = data['token'] as String;
+      }
       return data;
     } catch (_) {
       return {'success': false, 'error': 'فشل الاتصال'};

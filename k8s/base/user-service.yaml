@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: ghcr.io/OWNER/REPO/user-service:latest
+          image: ghcr.io/alomranehala-sketch/healthcare/user-service:latest
           ports:
             - containerPort: 3003
           envFrom:

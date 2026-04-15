@@ -230,7 +230,9 @@ class _MohAnalyticsScreenState extends State<MohAnalyticsScreen> {
   Widget _epidemicCard() {
     final epi = _data['epidemicDetection'] as Map<String, dynamic>? ?? {};
     final alerts =
-        (epi['alerts'] as List?)?.cast<Map<String, dynamic>>() ??
+        (epi['alerts'] as List?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
         [
           {
             'disease': 'إنفلونزا موسمية',
@@ -414,11 +416,11 @@ class _MohAnalyticsScreenState extends State<MohAnalyticsScreen> {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 120,
+            height: 150,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(7, (i) {
-                final h = (predictions[i] / maxPred) * 100;
+                final pct = predictions[i] / maxPred;
                 final isToday = i == 0;
                 return Expanded(
                   child: Padding(
@@ -436,29 +438,33 @@ class _MohAnalyticsScreenState extends State<MohAnalyticsScreen> {
                                 : Colors.white.withAlpha(80),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Container(
-                          height: h,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: isToday
-                                  ? [
-                                      AppColors.primary,
-                                      AppColors.primary.withAlpha(100),
-                                    ]
-                                  : [
-                                      Colors.white.withAlpha(25),
-                                      Colors.white.withAlpha(10),
-                                    ],
-                            ),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(4),
+                        const SizedBox(height: 2),
+                        Flexible(
+                          child: FractionallySizedBox(
+                            heightFactor: pct.clamp(0.1, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: isToday
+                                      ? [
+                                          AppColors.primary,
+                                          AppColors.primary.withAlpha(100),
+                                        ]
+                                      : [
+                                          Colors.white.withAlpha(25),
+                                          Colors.white.withAlpha(10),
+                                        ],
+                                ),
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(4),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           days[i],
                           style: TextStyle(

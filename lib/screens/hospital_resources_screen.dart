@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 
 /// Hospital Resources Map — خريطة موارد المستشفيات الحية
@@ -490,7 +491,15 @@ class _HospitalResourcesScreenState extends State<HospitalResourcesScreen>
               _equipBadge('MRI', h.mriAvail),
               const Spacer(),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('جارٍ فتح الاتجاهات... 🗺️'),
+                      backgroundColor: Color(0xFF3B82F6),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.navigation_rounded, size: 14),
                 label: const Text('اتجاهات', style: TextStyle(fontSize: 11)),
                 style: TextButton.styleFrom(foregroundColor: AppColors.primary),

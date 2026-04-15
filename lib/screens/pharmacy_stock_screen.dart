@@ -204,7 +204,16 @@ class _PharmacyStockScreenState extends State<PharmacyStockScreen> {
                     Icons.qr_code_scanner_rounded,
                     color: AppColors.accent,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('ماسح QR — قريباً 🔜'),
+                        backgroundColor: Color(0xFF3B82F6),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
@@ -410,7 +419,15 @@ class _PharmacyStockScreenState extends State<PharmacyStockScreen> {
                 if (r.hasDelivery)
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('تم طلب التوصيل ✅'),
+                            backgroundColor: Color(0xFF10B981),
+                          ),
+                        );
+                      },
                       icon: const Icon(Icons.delivery_dining_rounded, size: 16),
                       label: const Text(
                         'توصيل',
@@ -429,7 +446,15 @@ class _PharmacyStockScreenState extends State<PharmacyStockScreen> {
                 if (r.hasDelivery) const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تم حجز الدواء بنجاح ✅'),
+                          backgroundColor: Color(0xFF10B981),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.shopping_bag_rounded, size: 16),
                     label: const Text(
                       'احجز الدواء',

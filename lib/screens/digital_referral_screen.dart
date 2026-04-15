@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 
 /// Digital Referral System — نظام الإحالة الرقمي
@@ -374,7 +375,15 @@ class _DigitalReferralScreenState extends State<DigitalReferralScreen>
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('جارٍ تتبع الإحالة... 📍'),
+                          backgroundColor: Color(0xFF3B82F6),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.track_changes_rounded, size: 16),
                     label: const Text(
                       'تتبع الإحالة',
@@ -392,7 +401,15 @@ class _DigitalReferralScreenState extends State<DigitalReferralScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('جارٍ فتح المحادثة مع الدكتور... 💬'),
+                          backgroundColor: Color(0xFF10B981),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.chat_rounded, size: 16),
                     label: const Text(
                       'تواصل مع الدكتور',

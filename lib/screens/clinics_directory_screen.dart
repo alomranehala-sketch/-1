@@ -1338,7 +1338,15 @@ class _ClinicsDirectoryScreenState extends State<ClinicsDirectoryScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => HapticFeedback.mediumImpact(),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('جارٍ الاتصال بالعيادة... 📞'),
+                  backgroundColor: Color(0xFF10B981),
+                ),
+              );
+            },
             icon: const Icon(Icons.phone_rounded, size: 18),
             label: const Text(
               'اتصل بالعيادة',

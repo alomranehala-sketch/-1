@@ -77,7 +77,16 @@ class _VoiceReviewsScreenState extends State<VoiceReviewsScreen> {
                     Icons.filter_list_rounded,
                     color: AppColors.textLight,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('فلترة التقييمات — قريباً 🔜'),
+                        backgroundColor: Color(0xFF3B82F6),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

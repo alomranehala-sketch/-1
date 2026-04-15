@@ -185,15 +185,18 @@ class _MohMapScreenState extends State<MohMapScreen> {
             children: [
               const Text('🗺️', style: TextStyle(fontSize: 22)),
               const SizedBox(width: 8),
-              const Text(
-                'خريطة المستشفيات — الأردن',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+              const Expanded(
+                child: Text(
+                  'خريطة المستشفيات — الأردن',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(

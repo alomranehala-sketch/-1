@@ -33,6 +33,11 @@ import 'symptom_analyzer_screen.dart';
 import 'voice_reviews_screen.dart';
 import 'national_dashboard_screen.dart';
 import 'school_health_screen.dart';
+import 'emergency_heatmap_screen.dart';
+import 'drug_interaction_screen.dart';
+import 'health_gamification_screen.dart';
+import 'monthly_health_report_screen.dart';
+import 'digital_twin_screen.dart';
 
 class EnhancedHomeTab extends StatefulWidget {
   const EnhancedHomeTab({super.key});
@@ -157,11 +162,14 @@ class _EnhancedHomeTabState extends State<EnhancedHomeTab>
                 children: [
                   _heroHeader(top, unread),
                   _searchBar(),
+                  _healthVitalsSection(),
                   _aiAdvisorCard(),
+                  _dailyHealthTip(),
                   _quickServicesSection(),
                   _bloodDonationBanner(),
                   _appointmentSection(),
                   _medicationsCompact(),
+                  _healthProgressTracker(),
                   _exploreSection(),
                   _emergencySection(),
                   const SizedBox(height: 100),
@@ -318,28 +326,39 @@ class _EnhancedHomeTabState extends State<EnhancedHomeTab>
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF10B981),
-                    shape: BoxShape.circle,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                const Text(
-                  'عمّان، الأردن',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  '· 26°C',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  const Text(
+                    'عمّان، الأردن',
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '· 26°C',
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '· ${_formattedDate()}',
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -596,64 +615,116 @@ class _EnhancedHomeTabState extends State<EnhancedHomeTab>
         const Color(0xFFEF4444),
         () => _go(const BloodDonationScreen()),
       ),
+      _Q(
+        'خريطة الطوارئ',
+        Icons.local_fire_department_rounded,
+        const Color(0xFFFF6B35),
+        () => _go(const EmergencyHeatmapScreen()),
+      ),
+      _Q(
+        'تعارض أدوية',
+        Icons.shield_rounded,
+        const Color(0xFFE11D48),
+        () => _go(const DrugInteractionScreen()),
+      ),
+      _Q(
+        'نقاطي الصحية',
+        Icons.emoji_events_rounded,
+        const Color(0xFF7C3AED),
+        () => _go(const HealthGamificationScreen()),
+      ),
+      _Q(
+        'تقرير شهري',
+        Icons.analytics_rounded,
+        const Color(0xFF059669),
+        () => _go(const MonthlyHealthReportScreen()),
+      ),
+      _Q(
+        'التوأم الرقمي',
+        Icons.view_in_ar_rounded,
+        const Color(0xFF0EA5E9),
+        () => _go(const DigitalTwinScreen()),
+      ),
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _secTitle('الخدمات السريعة'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _secTitle('الخدمات السريعة'),
+              GestureDetector(
+                onTap: () => _go(const SearchScreen()),
+                child: const Text(
+                  'عرض الكل →',
+                  style: TextStyle(
+                    color: Color(0xFF818CF8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 88,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              physics: const BouncingScrollPhysics(),
-              itemCount: svcs.length,
-              itemBuilder: (_, i) {
-                final s = svcs[i];
-                return GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    s.onTap();
-                  },
-                  child: Container(
-                    width: 76,
-                    margin: const EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: s.c.withAlpha(15),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: s.c.withAlpha(25)),
+          GridView.count(
+            crossAxisCount: 4,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 0.85,
+            children: svcs
+                .take(8)
+                .map(
+                  (s) => GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      s.onTap();
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: s.c.withAlpha(20)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [s.c.withAlpha(20), s.c.withAlpha(10)],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: s.c.withAlpha(25)),
+                            ),
+                            child: Icon(s.ic, color: s.c, size: 22),
                           ),
-                          child: Icon(s.ic, color: s.c, size: 24),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          s.t,
-                          style: const TextStyle(
-                            color: Color(0xFFCBD5E1),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(height: 8),
+                          Text(
+                            s.t,
+                            style: const TextStyle(
+                              color: Color(0xFFCBD5E1),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
+                )
+                .toList(),
           ),
         ],
       ),
@@ -1102,28 +1173,32 @@ class _EnhancedHomeTabState extends State<EnhancedHomeTab>
             child: Icon(ic, color: c, size: 20),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                sub,
-                style: TextStyle(
-                  color: c,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  sub,
+                  style: TextStyle(
+                    color: c,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Icon(Icons.add_circle_outline_rounded, color: c, size: 22),
         ],
       ),
@@ -1323,6 +1398,422 @@ class _EnhancedHomeTabState extends State<EnhancedHomeTab>
           ),
         ),
       ),
+    );
+  }
+
+  // ═══ DATE HELPER ════════════════════════════════════════════
+  String _formattedDate() {
+    final now = DateTime.now();
+    const months = [
+      'يناير',
+      'فبراير',
+      'مارس',
+      'أبريل',
+      'مايو',
+      'يونيو',
+      'يوليو',
+      'أغسطس',
+      'سبتمبر',
+      'أكتوبر',
+      'نوفمبر',
+      'ديسمبر',
+    ];
+    const days = [
+      'الإثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد',
+    ];
+    return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+  }
+
+  // ═══ HEALTH VITALS CARDS ══════════════════════════════════
+  Widget _healthVitalsSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _secTitle('حالتك الصحية'),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _vitalCard(
+                  '❤️',
+                  'نبض القلب',
+                  '72',
+                  'bpm',
+                  const Color(0xFFEF4444),
+                  const Color(0xFFDC2626),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _vitalCard(
+                  '🚶',
+                  'الخطوات',
+                  '6,240',
+                  'خطوة',
+                  const Color(0xFF10B981),
+                  const Color(0xFF059669),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _vitalCard(
+                  '😴',
+                  'النوم',
+                  '7.5',
+                  'ساعة',
+                  const Color(0xFF8B5CF6),
+                  const Color(0xFF7C3AED),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _vitalCard(
+                  '💧',
+                  'الماء',
+                  '5',
+                  'أكواب',
+                  const Color(0xFF06B6D4),
+                  const Color(0xFF0891B2),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _vitalCard(
+    String emoji,
+    String label,
+    String value,
+    String unit,
+    Color c1,
+    Color c2,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c1.withAlpha(25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 22)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withAlpha(20),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'طبيعي',
+                  style: TextStyle(
+                    color: Color(0xFF10B981),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    color: c1,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  unit,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══ DAILY HEALTH TIP ═════════════════════════════════════
+  Widget _dailyHealthTip() {
+    final tips = [
+      {
+        'tip': 'اشرب 8 أكواب ماء يومياً للحفاظ على نشاطك وترطيب جسمك 💧',
+        'cat': 'ترطيب',
+      },
+      {
+        'tip': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب بنسبة 35% 🏃',
+        'cat': 'رياضة',
+      },
+      {
+        'tip': 'النوم 7-8 ساعات يعزز المناعة ويحسن التركيز والذاكرة 😴',
+        'cat': 'نوم',
+      },
+      {'tip': 'تناول 5 حصص فواكه وخضروات يومياً لصحة أفضل 🥗', 'cat': 'تغذية'},
+      {'tip': 'فحص ضغط الدم بانتظام يحميك من مضاعفات خطيرة 🩺', 'cat': 'وقاية'},
+      {
+        'tip': 'التأمل 10 دقائق يومياً يقلل التوتر والقلق بشكل ملحوظ 🧘',
+        'cat': 'صحة نفسية',
+      },
+      {
+        'tip': 'غسل اليدين بالصابون 20 ثانية يقي من 80% من الأمراض المعدية 🧼',
+        'cat': 'نظافة',
+      },
+    ];
+    final todayTip = tips[DateTime.now().day % tips.length];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1E3A2F), Color(0xFF1E293B)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF10B981).withAlpha(30)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.lightbulb_rounded,
+                color: Color(0xFF10B981),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'نصيحة اليوم',
+                        style: TextStyle(
+                          color: Color(0xFF10B981),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withAlpha(15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          todayTip['cat']!,
+                          style: const TextStyle(
+                            color: Color(0xFF10B981),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    todayTip['tip']!,
+                    style: const TextStyle(
+                      color: Color(0xFFCBD5E1),
+                      fontSize: 12,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ═══ HEALTH PROGRESS TRACKER ══════════════════════════════
+  Widget _healthProgressTracker() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _secTitle('أهدافك الصحية'),
+              Text(
+                'هذا الأسبوع',
+                style: TextStyle(color: const Color(0xFF64748B), fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withAlpha(6)),
+            ),
+            child: Column(
+              children: [
+                _progressRow(
+                  'الخطوات اليومية',
+                  0.62,
+                  '6,240 / 10,000',
+                  const Color(0xFF10B981),
+                  Icons.directions_walk_rounded,
+                ),
+                const SizedBox(height: 14),
+                _progressRow(
+                  'شرب الماء',
+                  0.63,
+                  '5 / 8 أكواب',
+                  const Color(0xFF06B6D4),
+                  Icons.water_drop_rounded,
+                ),
+                const SizedBox(height: 14),
+                _progressRow(
+                  'ساعات النوم',
+                  0.94,
+                  '7.5 / 8 ساعات',
+                  const Color(0xFF8B5CF6),
+                  Icons.bedtime_rounded,
+                ),
+                const SizedBox(height: 14),
+                _progressRow(
+                  'التمارين',
+                  0.40,
+                  '2 / 5 أيام',
+                  const Color(0xFFF59E0B),
+                  Icons.fitness_center_rounded,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _progressRow(
+    String label,
+    double progress,
+    String detail,
+    Color color,
+    IconData icon,
+  ) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: color.withAlpha(15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 16),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        color: Color(0xFFCBD5E1),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    detail,
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: color.withAlpha(20),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 6,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

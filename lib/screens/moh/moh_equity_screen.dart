@@ -129,38 +129,43 @@ class _MohEquityScreenState extends State<MohEquityScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Text('⚖️', style: TextStyle(fontSize: 22)),
-              SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'تحليلات العدالة الصحية',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+              const Text('⚖️', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'تحليلات العدالة الصحية',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'توزيع الخدمات والموارد بين المحافظات',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF10B981)),
-                  ),
-                ],
+                    Text(
+                      'توزيع الخدمات والموارد بين المحافظات',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF10B981)),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _chip('12', 'محافظة', const Color(0xFF3B82F6))),
-              const SizedBox(width: 8),
-              Expanded(child: _chip('2,208', 'طبيب', const Color(0xFF10B981))),
-              const SizedBox(width: 8),
-              Expanded(child: _chip('68%', 'الحجوزات لعمّان', const Color(0xFFF59E0B))),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _chip('12', 'محافظة', const Color(0xFF3B82F6)),
+                const SizedBox(width: 8),
+                _chip('2,208', 'طبيب', const Color(0xFF10B981)),
+                const SizedBox(width: 8),
+                _chip('68%', 'الحجوزات لعمّان', const Color(0xFFF59E0B)),
+              ],
+            ),
           ),
         ],
       ),
@@ -171,9 +176,9 @@ class _MohEquityScreenState extends State<MohEquityScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withAlpha(26),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withAlpha(77)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -408,11 +413,13 @@ class _MohEquityScreenState extends State<MohEquityScreen>
                               ),
                             ),
                             const SizedBox(width: 10),
-                            Text(
-                              '${g.name}: ${g.doctorsPer10k.toStringAsFixed(1)} طبيب/10k مواطن',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.white60,
+                            Expanded(
+                              child: Text(
+                                '${g.name}: ${g.doctorsPer10k.toStringAsFixed(1)} طبيب/10k مواطن',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white60,
+                                ),
                               ),
                             ),
                           ],

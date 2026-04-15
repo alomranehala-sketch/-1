@@ -325,6 +325,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
                   onTap: () async {
                     setState(() => _selectedVoice = v['id'] as String);
                     await _tts.setLanguage(v['locale'] as String);
+                    if (!mounted) return;
                     Navigator.pop(context);
                     _toggleListening();
                   },
@@ -804,7 +805,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
             )
             .toList();
         final result = await GrokService.chatWithVision(
-          history.cast<Map<String, dynamic>>(),
+          history.map((e) => Map<String, dynamic>.from(e as Map)).toList(),
           imageB64,
           text.trim().isEmpty ? 'حلل هذه الصورة' : text,
         );
@@ -1814,7 +1815,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
                               ),
                             );
                           },
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             height: 100,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(

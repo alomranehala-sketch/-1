@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: ghcr.io/OWNER/REPO/api-gateway:latest
+          image: ghcr.io/alomranehala-sketch/healthcare/api-gateway:latest
           ports:
             - containerPort: 3000
           envFrom:
@@ -54,7 +54,7 @@ metadata:
   name: api-gateway
   namespace: healthcare
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: api-gateway
   ports:

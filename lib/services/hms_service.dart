@@ -94,7 +94,7 @@ class HmsService {
       final params = ward != null ? {'ward': ward} : null;
       final uri = Uri.parse('$_base/hms/beds').replace(queryParameters: params);
       final r = await http.get(uri, headers: _h);
-      return jsonDecode(r.body);
+      return Map<String, dynamic>.from(jsonDecode(r.body) as Map);
     } catch (_) {
       return {'beds': [], 'summary': {}};
     }

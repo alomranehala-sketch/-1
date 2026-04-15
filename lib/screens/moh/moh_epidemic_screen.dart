@@ -191,32 +191,29 @@ class _MohEpidemicScreenState extends State<MohEpidemicScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _metricChip(
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _metricChip(
                   '${_chiData.length}',
                   'محافظة مراقبة',
                   const Color(0xFF10B981),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _metricChip(
+                const SizedBox(width: 8),
+                _metricChip(
                   '${_alerts.where((a) => a.level == 'أحمر').length}',
                   'إنذار أحمر',
                   const Color(0xFFEF4444),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _metricChip(
+                const SizedBox(width: 8),
+                _metricChip(
                   '${_alerts.where((a) => a.level == 'برتقالي').length}',
                   'إنذار برتقالي',
                   const Color(0xFFF59E0B),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -227,9 +224,9 @@ class _MohEpidemicScreenState extends State<MohEpidemicScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withAlpha(26),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withAlpha(77)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -293,11 +290,42 @@ class _MohEpidemicScreenState extends State<MohEpidemicScreen>
           ),
         ),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: _alerts.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 10),
-            itemBuilder: (_, i) => _AlertCard(alert: _alerts[i]),
+          child: Builder(
+            builder: (_) {
+              final filtered = _selectedDisease == 0
+                  ? _alerts
+                  : _alerts
+                        .where((a) => a.disease == _diseases[_selectedDisease])
+                        .toList();
+              if (filtered.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline_rounded,
+                        color: Colors.white.withAlpha(40),
+                        size: 48,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'لا توجد تنبيهات لهذا التصنيف',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withAlpha(80),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: filtered.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (_, i) => _AlertCard(alert: filtered[i]),
+              );
+            },
           ),
         ),
       ],
@@ -324,26 +352,28 @@ class _MohEpidemicScreenState extends State<MohEpidemicScreen>
               children: [
                 const Text('🏛️', style: TextStyle(fontSize: 32)),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'المؤشر الوطني للصحة المجتمعية',
-                      style: TextStyle(fontSize: 13, color: Colors.white70),
-                    ),
-                    Text(
-                      avg.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'المؤشر الوطني للصحة المجتمعية',
+                        style: TextStyle(fontSize: 13, color: Colors.white70),
                       ),
-                    ),
-                    const Text(
-                      'من 100 — جيد',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                  ],
+                      Text(
+                        avg.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const Text(
+                        'من 100 — جيد',
+                        style: TextStyle(fontSize: 12, color: Colors.white70),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: emergency-service
-          image: ghcr.io/OWNER/REPO/emergency-service:latest
+          image: ghcr.io/alomranehala-sketch/healthcare/emergency-service:latest
           ports:
             - containerPort: 3002
           envFrom:

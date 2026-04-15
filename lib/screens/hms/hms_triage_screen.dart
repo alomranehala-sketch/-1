@@ -82,7 +82,9 @@ class _HmsTriageScreenState extends State<HmsTriageScreen> {
   }
 
   Widget _triageCard(Map<String, dynamic> patient) {
-    final vitals = patient['vitals'] as Map<String, dynamic>? ?? {};
+    final vitals = patient['vitals'] != null
+        ? Map<String, dynamic>.from(patient['vitals'] as Map)
+        : <String, dynamic>{};
     final hr = vitals['hr'] as int? ?? 80;
     final temp = (vitals['temp'] as num?)?.toDouble() ?? 37.0;
     final o2 = vitals['o2'] as int? ?? 98;

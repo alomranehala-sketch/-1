@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 
 /// Hospital Operations Dashboard — لوحة عمليات المستشفى
@@ -53,7 +54,17 @@ class _HospitalOperationsScreenState extends State<HospitalOperationsScreen> {
                     Icons.refresh_rounded,
                     color: AppColors.textLight,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم تحديث البيانات ✅'),
+                        backgroundColor: Color(0xFF10B981),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

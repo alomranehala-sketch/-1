@@ -430,7 +430,15 @@ class _TelemedicineScreenState extends State<TelemedicineScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('جارٍ فتح المحادثة... 💬'),
+                        backgroundColor: Color(0xFF3B82F6),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.chat_rounded, size: 16),
                   label: const Text('محادثة', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(

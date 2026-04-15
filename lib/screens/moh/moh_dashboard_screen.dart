@@ -282,7 +282,9 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
   Widget _capacityCard() {
     final capacity = _data['capacity'] as Map<String, dynamic>? ?? {};
     final regions =
-        (capacity['regions'] as List?)?.cast<Map<String, dynamic>>() ??
+        (capacity['regions'] as List?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
         [
           {'name': 'عمّان', 'beds': 4200, 'occupied': 3360, 'pct': 80},
           {'name': 'إربد', 'beds': 2100, 'occupied': 1575, 'pct': 75},
@@ -382,46 +384,52 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
     return Column(
       children: alerts.map((a) {
         final isCritical = a['type'] == 'critical';
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isCritical
-                ? AppColors.error.withAlpha(8)
-                : const Color(0xFFF59E0B).withAlpha(8),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
+        return GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onTabSwitch?.call(4); // Switch to Epidemic tab
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
               color: isCritical
-                  ? AppColors.error.withAlpha(30)
-                  : const Color(0xFFF59E0B).withAlpha(30),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                a['icon'] as IconData,
-                color: isCritical ? AppColors.error : const Color(0xFFF59E0B),
-                size: 20,
+                  ? AppColors.error.withAlpha(8)
+                  : const Color(0xFFF59E0B).withAlpha(8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isCritical
+                    ? AppColors.error.withAlpha(30)
+                    : const Color(0xFFF59E0B).withAlpha(30),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  a['title'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isCritical
-                        ? AppColors.error
-                        : const Color(0xFFF59E0B),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  a['icon'] as IconData,
+                  color: isCritical ? AppColors.error : const Color(0xFFF59E0B),
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    a['title'] as String,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isCritical
+                          ? AppColors.error
+                          : const Color(0xFFF59E0B),
+                    ),
                   ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_left_rounded,
-                size: 18,
-                color: Colors.white.withAlpha(60),
-              ),
-            ],
+                Icon(
+                  Icons.chevron_left_rounded,
+                  size: 18,
+                  color: Colors.white.withAlpha(60),
+                ),
+              ],
+            ),
           ),
         );
       }).toList(),

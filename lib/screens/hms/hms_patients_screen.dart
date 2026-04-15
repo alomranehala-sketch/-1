@@ -171,7 +171,9 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
         ? AppColors.warning
         : AppColors.success;
     final status = p['status'] as String? ?? '';
-    final vitals = p['vitals'] as Map<String, dynamic>? ?? {};
+    final vitals = p['vitals'] != null
+        ? Map<String, dynamic>.from(p['vitals'] as Map)
+        : <String, dynamic>{};
 
     String statusLabel;
     Color statusColor;
@@ -449,24 +451,29 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              ...List.generate(
-                statuses.length,
-                (i) => ListTile(
-                  title: Text(
-                    labels[i],
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  leading: Radio<String>(
-                    value: statuses[i],
-                    groupValue: p['status'],
-                    activeColor: AppColors.primary,
-                    onChanged: (v) async {
-                      Navigator.pop(context);
-                      await HmsService.updatePatientStatus(p['id'] ?? '', {
-                        'status': v,
-                      });
-                      _load();
-                    },
+              RadioGroup<String>(
+                groupValue: p['status'] as String? ?? '',
+                onChanged: (v) async {
+                  Navigator.pop(context);
+                  await HmsService.updatePatientStatus(p['id'] ?? '', {
+                    'status': v,
+                  });
+                  _load();
+                },
+                child: Column(
+                  children: List.generate(
+                    statuses.length,
+                    (i) => RadioListTile<String>(
+                      title: Text(
+                        labels[i],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      value: statuses[i],
+                      activeColor: AppColors.primary,
+                    ),
                   ),
                 ),
               ),

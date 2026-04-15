@@ -108,27 +108,30 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
             children: [
               Text(roleIcon, style: const TextStyle(fontSize: 28)),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    roleLabel,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      roleLabel,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    'نظام إدارة المستشفى — مستشفى الأردن',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withAlpha(120),
+                    Text(
+                      'نظام إدارة المستشفى — مستشفى الأردن',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withAlpha(120),
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const Spacer(),
               GestureDetector(
                 onTap: () {
                   HapticFeedback.mediumImpact();
@@ -270,7 +273,7 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 1.7,
+      childAspectRatio: 1.55,
       children: stats.map((s) => _statCard(s)).toList(),
     );
   }
@@ -315,7 +318,9 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
   }
 
   Widget _buildTriageBar() {
-    final triage = _data['triageBreakdown'] as Map<String, dynamic>? ?? {};
+    final triage = _data['triageBreakdown'] != null
+        ? Map<String, dynamic>.from(_data['triageBreakdown'] as Map)
+        : <String, dynamic>{};
     final red = (triage['red'] ?? 0) as int;
     final yellow = (triage['yellow'] ?? 0) as int;
     final green = (triage['green'] ?? 0) as int;
@@ -439,7 +444,10 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
 
   Widget _buildDepartmentLoad() {
     final depts =
-        (_data['departmentLoad'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        (_data['departmentLoad'] as List?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
+        [];
     if (depts.isEmpty) return const SizedBox.shrink();
 
     return Container(

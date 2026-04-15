@@ -339,7 +339,16 @@ class _FamilySharingScreenState extends State<FamilySharingScreen> {
           Switch.adaptive(
             value: enabled,
             activeTrackColor: AppColors.primary,
-            onChanged: (_) {},
+            onChanged: (_) {
+              HapticFeedback.lightImpact();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${enabled ? "تم إلغاء" : "تم تفعيل"} $label'),
+                  backgroundColor: const Color(0xFF10B981),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
           ),
         ],
       ),

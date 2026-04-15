@@ -60,6 +60,7 @@ spec:
         name: postgres-storage
       spec:
         accessModes: ['ReadWriteOnce']
+        storageClassName: standard
         resources:
           requests:
             storage: 20Gi

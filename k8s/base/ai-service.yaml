@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ai-service
-          image: ghcr.io/OWNER/REPO/ai-service:latest
+          image: ghcr.io/alomranehala-sketch/healthcare/ai-service:latest
           ports:
             - containerPort: 3005
           envFrom:

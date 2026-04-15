@@ -539,7 +539,16 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تغيير العنوان — قريباً 🔜'),
+                      backgroundColor: Color(0xFF3B82F6),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
                 child: const Text(
                   'تغيير',
                   style: TextStyle(
