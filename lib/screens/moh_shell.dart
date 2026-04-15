@@ -6,6 +6,7 @@ import 'moh/moh_analytics_screen.dart';
 import 'moh/moh_reports_screen.dart';
 import 'moh/moh_epidemic_screen.dart';
 import 'moh/moh_equity_screen.dart';
+import 'moh/moh_facilities_screen.dart';
 
 class MohShell extends StatefulWidget {
   final String userName;
@@ -24,15 +25,17 @@ class _MohShellState extends State<MohShell> {
     const MohReportsScreen(),
     const MohEpidemicScreen(),
     const MohEquityScreen(),
+    const MohFacilitiesScreen(),
   ];
 
   final _navItems = const [
     _NavItem(Icons.dashboard_rounded, 'القيادة'),
-    _NavItem(Icons.map_rounded, 'خريطة حية'),
-    _NavItem(Icons.analytics_rounded, 'التحليلات'),
-    _NavItem(Icons.assessment_rounded, 'التقارير'),
-    _NavItem(Icons.warning_amber_rounded, 'الأوبئة'),
-    _NavItem(Icons.balance_rounded, 'العدالة'),
+    _NavItem(Icons.map_rounded, 'خريطة'),
+    _NavItem(Icons.analytics_rounded, 'تحليلات'),
+    _NavItem(Icons.assessment_rounded, 'تقارير'),
+    _NavItem(Icons.warning_amber_rounded, 'أوبئة'),
+    _NavItem(Icons.balance_rounded, 'عدالة'),
+    _NavItem(Icons.local_hospital_rounded, 'المرافق'),
   ];
 
   @override

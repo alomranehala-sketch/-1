@@ -161,6 +161,12 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
                         const SizedBox(height: 8),
                         _alertsList(),
                         const SizedBox(height: 20),
+                        // Facilities feature card
+                        _facilitiesFeatureCard(),
+                        const SizedBox(height: 20),
+                        // Facilities feature card
+                        _facilitiesFeatureCard(),
+                        const SizedBox(height: 20),
                         // Quick links
                         _sectionTitle('🔗 إجراءات سريعة'),
                         const SizedBox(height: 8),
@@ -462,16 +468,24 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
         const Color(0xFF8B5CF6),
         5,
       ], // Equity tab
+      [
+        'المرافق',
+        Icons.local_hospital_rounded,
+        const Color(0xFF06B6D4),
+        6,
+      ], // Facilities tab
     ];
-    return Row(
-      children: actions.map<Widget>((a) {
-        return Expanded(
-          child: GestureDetector(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: actions.map<Widget>((a) {
+          return GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
               widget.onTabSwitch?.call(a[3] as int);
             },
             child: Container(
+              width: 72,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
@@ -485,6 +499,7 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
                   const SizedBox(height: 6),
                   Text(
                     a[0] as String,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -494,9 +509,100 @@ class _MohDashboardScreenState extends State<MohDashboardScreen> {
                 ],
               ),
             ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _facilitiesFeatureCard() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        widget.onTabSwitch?.call(6);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0E7490), Color(0xFF0F172A)],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
           ),
-        );
-      }).toList(),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF06B6D4).withAlpha(60)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF06B6D4).withAlpha(30),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Text('🏥', style: TextStyle(fontSize: 28)),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '🏥 المرافق الصحية',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'سعة المستشفيات • المراكز الصحية • الصيدليات وأدويتها',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withAlpha(150),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      _featurePill('🏥 21 مستشفى'),
+                      _featurePill('🏢 18 مركز'),
+                      _featurePill('💊 14 صيدلية'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.arrow_back_ios_rounded,
+              color: Color(0xFF06B6D4),
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _featurePill(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFF06B6D4).withAlpha(20),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF06B6D4).withAlpha(50)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFF67E8F9),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 

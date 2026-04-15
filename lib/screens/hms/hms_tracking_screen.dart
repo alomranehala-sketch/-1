@@ -14,6 +14,74 @@ class _HmsTrackingScreenState extends State<HmsTrackingScreen> {
   bool _loading = true;
   Map<String, dynamic>? _selected;
 
+  static final List<Map<String, dynamic>> _demoPatients = [
+    {
+      'id': 'tr1',
+      'name': 'أحمد النمر',
+      'age': 45,
+      'gender': 'ذكر',
+      'triage': 'red',
+      'department': 'طوارئ',
+      'room': '101',
+      'step': 4, // 0-5, current step index
+      'complaint': 'ألم صدري مع ضيق تنفس',
+      'admitTime': '07:15',
+      'estimatedDischarge': '14:00',
+    },
+    {
+      'id': 'tr2',
+      'name': 'منى الحربي',
+      'age': 38,
+      'gender': 'أنثى',
+      'triage': 'yellow',
+      'department': 'باطنية',
+      'room': '204',
+      'step': 3,
+      'complaint': 'حمى مستمرة وغثيان',
+      'admitTime': '08:30',
+      'estimatedDischarge': '16:00',
+    },
+    {
+      'id': 'tr3',
+      'name': 'نواف الزهراني',
+      'age': 22,
+      'gender': 'ذكر',
+      'triage': 'yellow',
+      'department': 'جراحة',
+      'room': '310',
+      'step': 2,
+      'complaint': 'كسر في الكاحل',
+      'admitTime': '09:00',
+      'estimatedDischarge': '18:00',
+    },
+    {
+      'id': 'tr4',
+      'name': 'ريم الشمري',
+      'age': 55,
+      'gender': 'أنثى',
+      'triage': 'green',
+      'department': 'باطنية',
+      'room': '215',
+      'step': 4,
+      'complaint': 'صداع وارتفاع طفيف في السكر',
+      'admitTime': '06:45',
+      'estimatedDischarge': '13:00',
+    },
+    {
+      'id': 'tr5',
+      'name': 'عبدالله القرني',
+      'age': 72,
+      'gender': 'ذكر',
+      'triage': 'red',
+      'department': 'عناية مركزة',
+      'room': 'ICU-3',
+      'step': 3,
+      'complaint': 'سكتة دماغية طارئة',
+      'admitTime': '05:20',
+      'estimatedDischarge': '—',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -24,7 +92,7 @@ class _HmsTrackingScreenState extends State<HmsTrackingScreen> {
     final data = await HmsService.getPatients(status: 'in-treatment');
     if (mounted) {
       setState(() {
-        _patients = data;
+        _patients = data.isNotEmpty ? data : _demoPatients;
         _loading = false;
       });
     }
@@ -86,6 +154,10 @@ class _HmsTrackingScreenState extends State<HmsTrackingScreen> {
         itemCount: _patients.length,
         itemBuilder: (_, i) {
           final p = _patients[i];
+          final triColor = _triageColor(p['triage'] ?? 'green');
+          final step = (p['step'] as int?) ?? 3;
+          final progress = ((step + 1) / 6).clamp(0.0, 1.0);
+
           return GestureDetector(
             onTap: () => setState(() => _selected = p),
             child: Container(
@@ -94,54 +166,118 @@ class _HmsTrackingScreenState extends State<HmsTrackingScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
-                border: Border(
-                  right: BorderSide(
-                    color: _triageColor(p['triage'] ?? 'green'),
-                    width: 4,
-                  ),
-                ),
+                border: Border(right: BorderSide(color: triColor, width: 4)),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: _triageColor(
-                      p['triage'] ?? 'green',
-                    ).withAlpha(20),
-                    child: Text(
-                      (p['name'] as String? ?? '؟')[0],
-                      style: TextStyle(
-                        color: _triageColor(p['triage'] ?? 'green'),
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          p['name'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          '${p['department'] ?? ''} • غرفة ${p['room'] ?? '-'}',
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: triColor.withAlpha(20),
+                        child: Text(
+                          (p['name'] as String? ?? '؟')[0],
                           style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white.withAlpha(100),
+                            color: triColor,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p['name'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${p['department'] ?? ''} • غرفة ${p['room'] ?? '-'}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white.withAlpha(100),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'دخول ${p['admitTime'] ?? '--:--'}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withAlpha(70),
+                            ),
+                          ),
+                          if ((p['estimatedDischarge'] as String?)
+                                      ?.isNotEmpty ==
+                                  true &&
+                              p['estimatedDischarge'] != '—')
+                            Text(
+                              'خروج ~${p['estimatedDischarge']}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.success,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.chevron_left_rounded,
+                        color: Colors.white.withAlpha(60),
+                      ),
+                    ],
                   ),
-                  Icon(
-                    Icons.chevron_left_rounded,
-                    color: Colors.white.withAlpha(60),
+                  const SizedBox(height: 8),
+                  // Journey progress bar
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _stepLabel(step),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white.withAlpha(100),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: Colors.white.withAlpha(10),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  triColor,
+                                ),
+                                minHeight: 5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        '${((progress) * 100).toInt()}%',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: triColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -152,53 +288,79 @@ class _HmsTrackingScreenState extends State<HmsTrackingScreen> {
     );
   }
 
+  String _stepLabel(int step) {
+    const labels = [
+      'تسجيل الدخول',
+      'الفرز الطبي',
+      'الفحص الطبي',
+      'التحاليل والأشعة',
+      'قيد العلاج',
+      'جاهز للخروج',
+    ];
+    if (step < labels.length) return '📍 ${labels[step]}';
+    return '📍 قيد العلاج';
+  }
+
   Widget _patientTimeline(Map<String, dynamic> patient) {
-    // Simulated journey steps
-    final steps = <Map<String, dynamic>>[
+    final currentStep = (patient['step'] as int?) ?? 3;
+    final admitTime = patient['admitTime'] as String? ?? '--:--';
+    final triColor = _triageColor(patient['triage'] ?? 'green');
+
+    // Generate steps with dynamic done/time based on current step
+    final stepDefs = [
       {
         'title': 'تسجيل الدخول',
         'desc': 'الاستقبال — تسجيل بيانات المريض',
         'icon': Icons.login_rounded,
-        'done': true,
-        'time': '08:30',
       },
       {
         'title': 'الفرز الطبي',
         'desc': 'تقييم أولي — مستوى ${patient['triage'] ?? 'أخضر'}',
-        'icon': Icons.medical_services_rounded,
-        'done': true,
-        'time': '08:35',
+        'icon': Icons.smart_toy_rounded,
       },
       {
         'title': 'الفحص الطبي',
         'desc':
             'قسم ${patient['department'] ?? 'طوارئ'} — غرفة ${patient['room'] ?? '-'}',
         'icon': Icons.medical_services_rounded,
-        'done': true,
-        'time': '08:50',
       },
       {
         'title': 'التحاليل والأشعة',
         'desc': 'طلب تحاليل دم + أشعة سينية',
         'icon': Icons.biotech_rounded,
-        'done': true,
-        'time': '09:10',
       },
       {
         'title': 'قيد العلاج',
         'desc': 'علاج معتمد — مراقبة حيوية',
         'icon': Icons.healing_rounded,
-        'done': true,
-        'time': '09:40',
       },
       {
         'title': 'الخروج',
-        'desc': 'بانتظار إذن الطبيب',
+        'desc':
+            'بانتظار إذن الطبيب — خروج متوقع ${patient['estimatedDischarge'] ?? '--:--'}',
         'icon': Icons.exit_to_app_rounded,
-        'done': false,
-        'time': '--:--',
       },
     ];
+
+    // Generate realistic times based on admit time
+    int baseMin = 0;
+    try {
+      final parts = admitTime.split(':');
+      baseMin = (int.parse(parts[0]) * 60) + int.parse(parts[1]);
+    } catch (_) {}
+    final timeOffsets = [0, 5, 15, 30, 60, 180];
+
+    final steps = List.generate(stepDefs.length, (i) {
+      final isDone = i <= currentStep;
+      final totalMin = baseMin + timeOffsets[i];
+      final h = (totalMin ~/ 60).toString().padLeft(2, '0');
+      final m = (totalMin % 60).toString().padLeft(2, '0');
+      return {
+        ...stepDefs[i],
+        'done': isDone,
+        'time': isDone ? '$h:$m' : '--:--',
+      };
+    });
 
     return Column(
       children: [
@@ -218,13 +380,11 @@ class _HmsTrackingScreenState extends State<HmsTrackingScreen> {
               const SizedBox(width: 12),
               CircleAvatar(
                 radius: 20,
-                backgroundColor: _triageColor(
-                  patient['triage'] ?? 'green',
-                ).withAlpha(20),
+                backgroundColor: triColor.withAlpha(20),
                 child: Text(
                   (patient['name'] as String? ?? '؟')[0],
                   style: TextStyle(
-                    color: _triageColor(patient['triage'] ?? 'green'),
+                    color: triColor,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

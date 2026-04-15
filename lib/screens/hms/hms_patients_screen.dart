@@ -15,6 +15,13 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
   bool _loading = true;
   String _filter = 'all';
 
+  // Daily stats
+  int _todayCases = 0;
+  int _admittedToday = 0;
+  int _dischargedToday = 0;
+  double _occupancyRate = 0;
+  final int _totalBeds = 120;
+
   @override
   void initState() {
     super.initState();
@@ -25,11 +32,178 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
     final patients = await HmsService.getPatients();
     if (mounted) {
       setState(() {
-        _patients = patients;
+        _patients = patients.isNotEmpty ? patients : _demoPatients;
+        _todayCases = _patients.length;
+        _admittedToday = _patients
+            .where((p) => p['status'] != 'discharged')
+            .length;
+        _dischargedToday = _patients
+            .where((p) => p['status'] == 'discharged')
+            .length;
+        _occupancyRate = (_admittedToday / _totalBeds * 100).clamp(0, 100);
         _loading = false;
       });
     }
   }
+
+  static final List<Map<String, dynamic>> _demoPatients = [
+    {
+      'id': 'p1',
+      'name': 'أحمد محمد الخالدي',
+      'age': 45,
+      'gender': 'ذكر',
+      'department': 'طوارئ',
+      'triageLevel': 'red',
+      'status': 'in-treatment',
+      'complaint': 'ألم حاد في الصدر مع ضيق تنفس',
+      'room': 'ER-03',
+      'vitals': {'hr': 110, 'bp': '160/95', 'temp': 37.8, 'o2': 92},
+      'admittedAt': '08:30',
+    },
+    {
+      'id': 'p2',
+      'name': 'فاطمة علي الحسن',
+      'age': 32,
+      'gender': 'أنثى',
+      'department': 'نسائية',
+      'triageLevel': 'yellow',
+      'status': 'in-treatment',
+      'complaint': 'آلام ولادة - الحمل الثالث',
+      'room': 'OB-12',
+      'vitals': {'hr': 88, 'bp': '125/80', 'temp': 37.2, 'o2': 98},
+      'admittedAt': '06:15',
+    },
+    {
+      'id': 'p3',
+      'name': 'عمر سعيد النعيمي',
+      'age': 67,
+      'gender': 'ذكر',
+      'department': 'قلب',
+      'triageLevel': 'red',
+      'status': 'in-surgery',
+      'complaint': 'جلطة قلبية حادة',
+      'room': 'CCU-01',
+      'vitals': {'hr': 55, 'bp': '90/60', 'temp': 36.5, 'o2': 88},
+      'admittedAt': '03:45',
+    },
+    {
+      'id': 'p4',
+      'name': 'ليلى حسين الزعبي',
+      'age': 28,
+      'gender': 'أنثى',
+      'department': 'باطنية',
+      'triageLevel': 'yellow',
+      'status': 'observation',
+      'complaint': 'ارتفاع حرارة وغثيان مستمر',
+      'room': 'M-204',
+      'vitals': {'hr': 95, 'bp': '130/85', 'temp': 39.1, 'o2': 96},
+      'admittedAt': '11:00',
+    },
+    {
+      'id': 'p5',
+      'name': 'خالد إبراهيم عبدالله',
+      'age': 55,
+      'gender': 'ذكر',
+      'department': 'عظام',
+      'triageLevel': 'green',
+      'status': 'waiting',
+      'complaint': 'كسر في الساعد الأيمن',
+      'room': 'OR-W2',
+      'vitals': {'hr': 78, 'bp': '120/75', 'temp': 36.8, 'o2': 99},
+      'admittedAt': '13:20',
+    },
+    {
+      'id': 'p6',
+      'name': 'سارة وليد المصري',
+      'age': 8,
+      'gender': 'أنثى',
+      'department': 'أطفال',
+      'triageLevel': 'yellow',
+      'status': 'in-treatment',
+      'complaint': 'حساسية شديدة مع طفح جلدي',
+      'room': 'PED-06',
+      'vitals': {'hr': 105, 'bp': '100/65', 'temp': 38.3, 'o2': 97},
+      'admittedAt': '09:50',
+    },
+    {
+      'id': 'p7',
+      'name': 'محمود عادل الشمالي',
+      'age': 72,
+      'gender': 'ذكر',
+      'department': 'أعصاب',
+      'triageLevel': 'red',
+      'status': 'in-treatment',
+      'complaint': 'اشتباه جلطة دماغية - ضعف بالجانب الأيسر',
+      'room': 'NICU-02',
+      'vitals': {'hr': 68, 'bp': '180/110', 'temp': 37.0, 'o2': 94},
+      'admittedAt': '07:10',
+    },
+    {
+      'id': 'p8',
+      'name': 'نور الدين محمد',
+      'age': 40,
+      'gender': 'ذكر',
+      'department': 'جراحة',
+      'triageLevel': 'green',
+      'status': 'discharged',
+      'complaint': 'استئصال الزائدة الدودية - بعد العملية',
+      'room': 'S-108',
+      'vitals': {'hr': 72, 'bp': '118/72', 'temp': 36.9, 'o2': 99},
+      'admittedAt': '05:00',
+    },
+    {
+      'id': 'p9',
+      'name': 'رنا أمجد الطراونة',
+      'age': 50,
+      'gender': 'أنثى',
+      'department': 'عناية مركزة',
+      'triageLevel': 'red',
+      'status': 'in-treatment',
+      'complaint': 'قصور تنفسي حاد - تحتاج تنفس اصطناعي',
+      'room': 'ICU-04',
+      'vitals': {'hr': 120, 'bp': '85/55', 'temp': 38.5, 'o2': 85},
+      'admittedAt': '01:30',
+    },
+    {
+      'id': 'p10',
+      'name': 'يوسف كمال البطاينة',
+      'age': 19,
+      'gender': 'ذكر',
+      'department': 'طوارئ',
+      'triageLevel': 'green',
+      'status': 'discharged',
+      'complaint': 'جرح بسيط في الرأس - تم خياطته',
+      'room': 'ER-07',
+      'vitals': {'hr': 80, 'bp': '115/70', 'temp': 36.7, 'o2': 99},
+      'admittedAt': '12:45',
+    },
+    {
+      'id': 'p11',
+      'name': 'هند سامي القضاة',
+      'age': 35,
+      'gender': 'أنثى',
+      'department': 'باطنية',
+      'triageLevel': 'yellow',
+      'status': 'waiting',
+      'complaint': 'آلام شديدة في البطن مع تقيؤ',
+      'room': 'M-W1',
+      'vitals': {'hr': 92, 'bp': '128/82', 'temp': 37.6, 'o2': 97},
+      'admittedAt': '14:05',
+    },
+    {
+      'id': 'p12',
+      'name': 'عبدالرحمن فيصل',
+      'age': 60,
+      'gender': 'ذكر',
+      'department': 'قلب',
+      'triageLevel': 'yellow',
+      'status': 'observation',
+      'complaint': 'خفقان وعدم انتظام ضربات القلب',
+      'room': 'CCU-05',
+      'vitals': {'hr': 130, 'bp': '145/90', 'temp': 36.6, 'o2': 95},
+      'admittedAt': '10:20',
+    },
+  ];
 
   List<Map<String, dynamic>> get _filtered {
     if (_filter == 'all') return _patients;
@@ -102,6 +276,113 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
             ],
           ),
         ),
+        // Daily stats cards
+        Container(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+          color: const Color(0xFF0F172A),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('📊', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'إحصائيات اليوم',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    _todayDate(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withAlpha(100),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _statCard(
+                    'حالات اليوم',
+                    '$_todayCases',
+                    Icons.people_alt_rounded,
+                    AppColors.info,
+                  ),
+                  const SizedBox(width: 8),
+                  _statCard(
+                    'نسبة الإشغال',
+                    '${_occupancyRate.toStringAsFixed(0)}%',
+                    Icons.hotel_rounded,
+                    _occupancyRate > 80
+                        ? AppColors.error
+                        : _occupancyRate > 60
+                        ? AppColors.warning
+                        : AppColors.success,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _statCard(
+                    'دخلوا اليوم',
+                    '$_admittedToday',
+                    Icons.login_rounded,
+                    const Color(0xFF3B82F6),
+                  ),
+                  const SizedBox(width: 8),
+                  _statCard(
+                    'خرجوا اليوم',
+                    '$_dischargedToday',
+                    Icons.logout_rounded,
+                    AppColors.success,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              // Occupancy progress bar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: _occupancyRate / 100,
+                  minHeight: 6,
+                  backgroundColor: Colors.white.withAlpha(15),
+                  color: _occupancyRate > 80
+                      ? AppColors.error
+                      : _occupancyRate > 60
+                      ? AppColors.warning
+                      : AppColors.success,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'إجمالي الأسرّة: $_totalBeds',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white.withAlpha(80),
+                    ),
+                  ),
+                  Text(
+                    'مشغولة: $_admittedToday | متاحة: ${_totalBeds - _admittedToday}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white.withAlpha(80),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
         // Patient list
         Expanded(
           child: _loading
@@ -125,6 +406,77 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
                 ),
         ),
       ],
+    );
+  }
+
+  String _todayDate() {
+    final now = DateTime.now();
+    final months = [
+      '',
+      'يناير',
+      'فبراير',
+      'مارس',
+      'أبريل',
+      'مايو',
+      'يونيو',
+      'يوليو',
+      'أغسطس',
+      'سبتمبر',
+      'أكتوبر',
+      'نوفمبر',
+      'ديسمبر',
+    ];
+    return '${now.day} ${months[now.month]} ${now.year}';
+  }
+
+  Widget _statCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withAlpha(12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withAlpha(30)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withAlpha(25),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withAlpha(120),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -229,15 +581,18 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                p['name'] ?? '',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              Expanded(
+                child: Text(
+                  p['name'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -272,11 +627,14 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
                 color: Colors.white.withAlpha(80),
               ),
               const SizedBox(width: 4),
-              Text(
-                p['department'] ?? '—',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withAlpha(120),
+              Expanded(
+                child: Text(
+                  p['department'] ?? '—',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withAlpha(120),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -296,29 +654,36 @@ class _HmsPatientsScreenState extends State<HmsPatientsScreen> {
             ),
           const SizedBox(height: 8),
           // Vitals row
-          Row(
-            children: [
-              _vital('❤️', '${vitals['hr'] ?? 0}', 'نبض'),
-              _vital('🩸', '${vitals['bp'] ?? '—'}', 'ضغط'),
-              _vital('🌡️', '${vitals['temp'] ?? 0}°', 'حرارة'),
-              _vital('🫁', '${vitals['o2'] ?? 0}%', 'أكسجين'),
-              const Spacer(),
-              if (p['room'] != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _vital('❤️', '${vitals['hr'] ?? 0}', 'نبض'),
+                _vital('🩸', '${vitals['bp'] ?? '—'}', 'ضغط'),
+                _vital('🌡️', '${vitals['temp'] ?? 0}°', 'حرارة'),
+                _vital('🫁', '${vitals['o2'] ?? 0}%', 'أكسجين'),
+                if (p['room'] != null) ...[
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(8),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '📍 ${p['room']}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                      ),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(8),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '📍 ${p['room']}',
-                    style: const TextStyle(fontSize: 11, color: Colors.white70),
-                  ),
-                ),
-            ],
+                ],
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           // Action buttons

@@ -12,6 +12,64 @@ class HmsTriageScreen extends StatefulWidget {
 class _HmsTriageScreenState extends State<HmsTriageScreen> {
   List<Map<String, dynamic>> _patients = [];
   bool _loading = true;
+  String _filter = 'الكل'; // الكل / red / yellow / green
+
+  static final List<Map<String, dynamic>> _demoPatients = [
+    {
+      'id': 't1',
+      'name': 'فالح العنزي',
+      'age': 52,
+      'gender': 'ذكر',
+      'complaint': 'ألم شديد في الصدر مع ضيق تنفس مستمر',
+      'vitals': {'hr': 118, 'temp': 37.2, 'o2': 88, 'bp': '170/100'},
+      'arrivalTime': '08:42',
+    },
+    {
+      'id': 't2',
+      'name': 'سلمى الرشيد',
+      'age': 34,
+      'gender': 'أنثى',
+      'complaint': 'حرارة مرتفعة منذ يومين مع قيء',
+      'vitals': {'hr': 104, 'temp': 39.4, 'o2': 93, 'bp': '110/70'},
+      'arrivalTime': '09:05',
+    },
+    {
+      'id': 't3',
+      'name': 'خالد المطيري',
+      'age': 28,
+      'gender': 'ذكر',
+      'complaint': 'كسر مشتبه به في الكاحل بعد حادثة',
+      'vitals': {'hr': 88, 'temp': 37.0, 'o2': 98, 'bp': '125/82'},
+      'arrivalTime': '09:20',
+    },
+    {
+      'id': 't4',
+      'name': 'نورة القحطاني',
+      'age': 67,
+      'gender': 'أنثى',
+      'complaint': 'دوخة شديدة وارتباك ذهني مفاجئ',
+      'vitals': {'hr': 95, 'temp': 37.8, 'o2': 91, 'bp': '155/95'},
+      'arrivalTime': '09:30',
+    },
+    {
+      'id': 't5',
+      'name': 'ماجد الشهري',
+      'age': 19,
+      'gender': 'ذكر',
+      'complaint': 'ألم بطن خفيف مع غثيان',
+      'vitals': {'hr': 80, 'temp': 37.4, 'o2': 97, 'bp': '118/76'},
+      'arrivalTime': '09:45',
+    },
+    {
+      'id': 't6',
+      'name': 'هند العتيبي',
+      'age': 41,
+      'gender': 'أنثى',
+      'complaint': 'صداع نصفي متكرر مع حساسية للضوء',
+      'vitals': {'hr': 72, 'temp': 36.8, 'o2': 99, 'bp': '122/78'},
+      'arrivalTime': '09:58',
+    },
+  ];
 
   @override
   void initState() {
@@ -23,14 +81,48 @@ class _HmsTriageScreenState extends State<HmsTriageScreen> {
     final data = await HmsService.getPatients(status: 'waiting');
     if (mounted) {
       setState(() {
-        _patients = data;
+        _patients = List<Map<String, dynamic>>.from(
+          data.isNotEmpty ? data : _demoPatients,
+        );
         _loading = false;
       });
     }
   }
 
+  String _aiLevel(Map<String, dynamic> vitals) {
+    final hr = vitals['hr'] as int? ?? 80;
+    final temp = (vitals['temp'] as num?)?.toDouble() ?? 37.0;
+    final o2 = vitals['o2'] as int? ?? 98;
+    if (hr > 110 || temp > 39.0 || o2 < 90) return 'red';
+    if (hr > 100 || temp > 38.0 || o2 < 94) return 'yellow';
+    return 'green';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filter == 'الكل'
+        ? _patients
+        : _patients.where((p) {
+            final v = Map<String, dynamic>.from(
+              (p['vitals'] as Map?) ?? <String, dynamic>{},
+            );
+            return _aiLevel(v) == _filter;
+          }).toList();
+
+    final redCount = _patients.where((p) {
+      final v = Map<String, dynamic>.from(
+        (p['vitals'] as Map?) ?? <String, dynamic>{},
+      );
+      return _aiLevel(v) == 'red';
+    }).length;
+    final yellowCount = _patients.where((p) {
+      final v = Map<String, dynamic>.from(
+        (p['vitals'] as Map?) ?? <String, dynamic>{},
+      );
+      return _aiLevel(v) == 'yellow';
+    }).length;
+    final greenCount = _patients.length - redCount - yellowCount;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -47,36 +139,187 @@ class _HmsTriageScreenState extends State<HmsTriageScreen> {
           ),
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(20),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primary.withAlpha(40)),
+                  ),
+                  child: Text(
+                    '${_patients.length} بانتظار',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         body: _loading
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               )
-            : _patients.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('✅', style: TextStyle(fontSize: 48)),
-                    const SizedBox(height: 12),
-                    Text(
-                      'لا يوجد مرضى بانتظار الفرز',
-                      style: TextStyle(
-                        color: Colors.white.withAlpha(120),
-                        fontSize: 14,
+            : Column(
+                children: [
+                  // Summary bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    color: const Color(0xFF1E293B),
+                    child: Row(
+                      children: [
+                        _summaryBadge(
+                          '🔴',
+                          '$redCount',
+                          'حرج',
+                          AppColors.error,
+                        ),
+                        const SizedBox(width: 10),
+                        _summaryBadge(
+                          '🟡',
+                          '$yellowCount',
+                          'متوسط',
+                          const Color(0xFFF59E0B),
+                        ),
+                        const SizedBox(width: 10),
+                        _summaryBadge(
+                          '🟢',
+                          '$greenCount',
+                          'مستقر',
+                          AppColors.success,
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: _load,
+                          child: Icon(
+                            Icons.refresh_rounded,
+                            color: Colors.white.withAlpha(80),
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Filter chips
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    color: const Color(0xFF0F172A),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _filterChip('الكل', Colors.white54),
+                          const SizedBox(width: 8),
+                          _filterChip('red', AppColors.error),
+                          const SizedBox(width: 8),
+                          _filterChip('yellow', const Color(0xFFF59E0B)),
+                          const SizedBox(width: 8),
+                          _filterChip('green', AppColors.success),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: _load,
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: _patients.length,
-                  itemBuilder: (_, i) => _triageCard(_patients[i]),
-                ),
+                  ),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('✅', style: TextStyle(fontSize: 48)),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'لا يوجد مرضى بانتظار الفرز',
+                                  style: TextStyle(
+                                    color: Colors.white.withAlpha(120),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _load,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(12),
+                              itemCount: filtered.length,
+                              itemBuilder: (_, i) => _triageCard(filtered[i]),
+                            ),
+                          ),
+                  ),
+                ],
               ),
+      ),
+    );
+  }
+
+  Widget _summaryBadge(String emoji, String count, String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 14)),
+        const SizedBox(width: 4),
+        Text(
+          count,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: TextStyle(fontSize: 10, color: Colors.white.withAlpha(100)),
+        ),
+      ],
+    );
+  }
+
+  Widget _filterChip(String value, Color color) {
+    final selected = _filter == value;
+    final label = value == 'الكل'
+        ? 'الكل'
+        : value == 'red'
+        ? '🔴 حرج'
+        : value == 'yellow'
+        ? '🟡 متوسط'
+        : '🟢 مستقر';
+    return GestureDetector(
+      onTap: () => setState(() => _filter = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? color.withAlpha(25) : Colors.white.withAlpha(6),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? color : Colors.white.withAlpha(15),
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? color : Colors.white.withAlpha(120),
+          ),
+        ),
       ),
     );
   }
@@ -142,6 +385,7 @@ class _HmsTriageScreenState extends State<HmsTriageScreen> {
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '${patient['age'] ?? ''} سنة • ${patient['gender'] ?? ''}',
@@ -152,6 +396,25 @@ class _HmsTriageScreenState extends State<HmsTriageScreen> {
                     ),
                   ],
                 ),
+              ),
+              // Arrival time
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: Colors.white.withAlpha(60),
+                  ),
+                  Text(
+                    patient['arrivalTime'] as String? ?? '--:--',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withAlpha(80),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -311,15 +574,20 @@ class _HmsTriageScreenState extends State<HmsTriageScreen> {
   Future<void> _setTriage(dynamic id, String level) async {
     if (id == null) return;
     HapticFeedback.mediumImpact();
-    await HmsService.updateTriage(id.toString(), {'triage': level});
+    // Instantly remove from list for better UX
+    setState(() {
+      _patients.removeWhere((p) => p['id'] == id);
+    });
+    HmsService.updateTriage(id.toString(), {'triage': level});
     if (!mounted) return;
+    final labels = {'red': 'أحمر', 'yellow': 'أصفر', 'green': 'أخضر'};
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم تحديث مستوى الفرز إلى $level ✓'),
+        content: Text('تم تصنيف المريض مستوى ${labels[level] ?? level} ✓'),
         backgroundColor: _triageColor(level),
+        duration: const Duration(seconds: 2),
       ),
     );
-    _load();
   }
 
   Color _triageColor(String t) {

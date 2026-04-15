@@ -11,7 +11,8 @@ import 'hms_wayfinding_screen.dart';
 
 class HmsDashboardScreen extends StatefulWidget {
   final String role;
-  const HmsDashboardScreen({super.key, required this.role});
+  final ValueChanged<int>? onSwitchTab;
+  const HmsDashboardScreen({super.key, required this.role, this.onSwitchTab});
   @override
   State<HmsDashboardScreen> createState() => _HmsDashboardScreenState();
 }
@@ -30,11 +31,69 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
     final data = await HmsService.getDashboard();
     if (mounted) {
       setState(() {
-        _data = data;
+        // Use API data if available, otherwise demo
+        if (data.isNotEmpty && (data['patientsToday'] ?? 0) > 0) {
+          _data = data;
+        } else {
+          _data = _demoData;
+        }
         _loading = false;
       });
     }
   }
+
+  static final Map<String, dynamic> _demoData = {
+    'patientsToday': 47,
+    'criticalPatients': 6,
+    'waitingPatients': 12,
+    'inTreatment': 23,
+    'availableBeds': 34,
+    'emsIncoming': 2,
+    'pendingAlerts': 8,
+    'avgRating': 4.2,
+    'dischargedToday': 9,
+    'surgeriesToday': 5,
+    'occupancyRate': 72,
+    'avgWaitTime': 18,
+    'triageBreakdown': {'red': 6, 'yellow': 18, 'green': 23},
+    'departmentLoad': [
+      {'name': 'طوارئ', 'count': 8, 'capacity': 12},
+      {'name': 'باطنية', 'count': 6, 'capacity': 10},
+      {'name': 'قلب', 'count': 7, 'capacity': 8},
+      {'name': 'جراحة', 'count': 4, 'capacity': 10},
+      {'name': 'عظام', 'count': 3, 'capacity': 8},
+      {'name': 'أطفال', 'count': 5, 'capacity': 8},
+      {'name': 'عناية مركزة', 'count': 9, 'capacity': 10},
+      {'name': 'نسائية', 'count': 3, 'capacity': 6},
+    ],
+    'recentAdmissions': [
+      {
+        'name': 'أحمد الخالدي',
+        'time': '08:30',
+        'dept': 'طوارئ',
+        'triage': 'red',
+      },
+      {
+        'name': 'فاطمة الحسن',
+        'time': '09:15',
+        'dept': 'نسائية',
+        'triage': 'yellow',
+      },
+      {'name': 'عمر النعيمي', 'time': '10:00', 'dept': 'قلب', 'triage': 'red'},
+      {
+        'name': 'سارة المصري',
+        'time': '11:20',
+        'dept': 'أطفال',
+        'triage': 'yellow',
+      },
+      {
+        'name': 'خالد عبدالله',
+        'time': '13:45',
+        'dept': 'عظام',
+        'triage': 'green',
+      },
+    ],
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +117,12 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatGrid(),
+                    const SizedBox(height: 16),
+                    _buildExtraStats(),
                     const SizedBox(height: 20),
                     _buildTriageBar(),
+                    const SizedBox(height: 20),
+                    _buildRecentAdmissions(),
                     const SizedBox(height: 20),
                     _buildDepartmentLoad(),
                     const SizedBox(height: 20),
@@ -222,48 +285,56 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
         '${_data['patientsToday'] ?? 0}',
         Icons.people_rounded,
         AppColors.primary,
+        () => _switchTab(1),
       ),
       _Stat(
         'حالات حرجة',
         '${_data['criticalPatients'] ?? 0}',
         Icons.warning_rounded,
         AppColors.error,
+        () => _switchTab(3),
       ),
       _Stat(
         'بالانتظار',
         '${_data['waitingPatients'] ?? 0}',
         Icons.hourglass_top_rounded,
         AppColors.warning,
+        () => _switchTab(1),
       ),
       _Stat(
         'قيد العلاج',
         '${_data['inTreatment'] ?? 0}',
         Icons.medical_services_rounded,
         AppColors.info,
+        () => _switchTab(1),
       ),
       _Stat(
         'أسرّة متاحة',
         '${_data['availableBeds'] ?? 0}',
         Icons.bed_rounded,
         AppColors.success,
+        () => _switchTab(2),
       ),
       _Stat(
         'إسعاف قادم',
         '${_data['emsIncoming'] ?? 0}',
         Icons.local_hospital_rounded,
         const Color(0xFFEF4444),
+        () => _switchTab(4),
       ),
       _Stat(
         'تنبيهات',
         '${_data['pendingAlerts'] ?? 0}',
         Icons.notifications_active_rounded,
         const Color(0xFFF59E0B),
+        () => _switchTab(3),
       ),
       _Stat(
-        'التقييم',
-        '${_data['avgRating'] ?? 0}/3',
-        Icons.star_rounded,
-        const Color(0xFFA855F7),
+        'خرجوا اليوم',
+        '${_data['dischargedToday'] ?? 0}',
+        Icons.logout_rounded,
+        const Color(0xFF10B981),
+        null,
       ),
     ];
 
@@ -273,45 +344,356 @@ class _HmsDashboardScreenState extends State<HmsDashboardScreen> {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 1.55,
+      childAspectRatio: 1.2,
       children: stats.map((s) => _statCard(s)).toList(),
     );
   }
 
+  void _switchTab(int index) {
+    widget.onSwitchTab?.call(index);
+  }
+
   Widget _statCard(_Stat s) {
+    return GestureDetector(
+      onTap: s.onTap != null
+          ? () {
+              HapticFeedback.lightImpact();
+              s.onTap!();
+            }
+          : null,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: s.color.withAlpha(30)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(s.icon, color: s.color, size: 18),
+                const Spacer(),
+                Flexible(
+                  child: Text(
+                    s.value,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: s.color,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              s.label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withAlpha(150),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (s.onTap != null)
+              Flexible(
+                child: Text(
+                  'اضغط للتفاصيل ←',
+                  style: TextStyle(fontSize: 8, color: s.color.withAlpha(120)),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExtraStats() {
+    final occupancy = (_data['occupancyRate'] ?? 0) as int;
+    final avgWait = (_data['avgWaitTime'] ?? 0) as int;
+    final surgeries = (_data['surgeriesToday'] ?? 0) as int;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: s.color.withAlpha(30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'مؤشرات إضافية',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.white.withAlpha(200),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Occupancy rate bar
+          Row(
+            children: [
+              const Icon(
+                Icons.hotel_rounded,
+                color: Color(0xFF60A5FA),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'نسبة الإشغال',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withAlpha(160),
+                          ),
+                        ),
+                        Text(
+                          '$occupancy%',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: occupancy > 85
+                                ? AppColors.error
+                                : occupancy > 70
+                                ? AppColors.warning
+                                : AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: occupancy / 100,
+                        backgroundColor: Colors.white.withAlpha(15),
+                        valueColor: AlwaysStoppedAnimation(
+                          occupancy > 85
+                              ? AppColors.error
+                              : occupancy > 70
+                              ? AppColors.warning
+                              : AppColors.success,
+                        ),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Avg wait + surgeries row
+          Row(
+            children: [
+              Expanded(
+                child: _miniStat(
+                  Icons.timer_rounded,
+                  'متوسط الانتظار',
+                  '$avgWait د',
+                  const Color(0xFFF59E0B),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _miniStat(
+                  Icons.local_hospital_rounded,
+                  'عمليات اليوم',
+                  '$surgeries',
+                  const Color(0xFFA855F7),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniStat(IconData icon, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withAlpha(12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(25)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white.withAlpha(130),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentAdmissions() {
+    final admissions =
+        (_data['recentAdmissions'] as List?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
+        [];
+    if (admissions.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(s.icon, color: s.color, size: 20),
+              const Icon(
+                Icons.person_add_alt_1_rounded,
+                color: Color(0xFF60A5FA),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'آخر الدخول',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withAlpha(200),
+                ),
+              ),
               const Spacer(),
               Text(
-                s.value,
+                'اليوم',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: s.color,
+                  fontSize: 11,
+                  color: Colors.white.withAlpha(100),
                 ),
               ),
             ],
           ),
-          const Spacer(),
-          Text(
-            s.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withAlpha(150),
-            ),
-          ),
+          const SizedBox(height: 12),
+          ...admissions.map((a) {
+            final triage = a['triage'] ?? 'green';
+            final triageColor = triage == 'red'
+                ? AppColors.error
+                : triage == 'yellow'
+                ? AppColors.warning
+                : AppColors.success;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: triageColor.withAlpha(20),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: triageColor.withAlpha(50)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        (a['name'] as String? ?? '?').substring(0, 1),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: triageColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          a['name'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          a['dept'] ?? '',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white.withAlpha(120),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: triageColor.withAlpha(20),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      triage == 'red'
+                          ? 'حرج'
+                          : triage == 'yellow'
+                          ? 'متوسط'
+                          : 'بسيط',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: triageColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    a['time'] ?? '',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withAlpha(100),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -696,7 +1078,8 @@ class _Stat {
   final String label, value;
   final IconData icon;
   final Color color;
-  const _Stat(this.label, this.value, this.icon, this.color);
+  final VoidCallback? onTap;
+  const _Stat(this.label, this.value, this.icon, this.color, [this.onTap]);
 }
 
 class _QA {

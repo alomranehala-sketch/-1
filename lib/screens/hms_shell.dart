@@ -6,6 +6,7 @@ import 'hms/hms_patients_screen.dart';
 import 'hms/hms_beds_screen.dart';
 import 'hms/hms_alerts_screen.dart';
 import 'hms/hms_ems_screen.dart';
+import 'hms/hms_staff_screen.dart';
 
 class HmsShell extends StatefulWidget {
   final String role; // doctor, nurse, reception
@@ -25,11 +26,15 @@ class _HmsShellState extends State<HmsShell> {
   void initState() {
     super.initState();
     _screens = [
-      HmsDashboardScreen(role: widget.role),
+      HmsDashboardScreen(
+        role: widget.role,
+        onSwitchTab: (i) => setState(() => _index = i),
+      ),
       HmsPatientsScreen(role: widget.role),
       const HmsBedsScreen(),
       const HmsAlertsScreen(),
       const HmsEmsScreen(),
+      const HmsStaffScreen(),
     ];
     _navItems = [
       const _NavItem(Icons.dashboard_rounded, 'لوحة القيادة'),
@@ -37,6 +42,7 @@ class _HmsShellState extends State<HmsShell> {
       const _NavItem(Icons.bed_rounded, 'الأسرّة'),
       const _NavItem(Icons.warning_amber_rounded, 'التنبيهات'),
       const _NavItem(Icons.local_hospital_rounded, 'الطوارئ'),
+      const _NavItem(Icons.badge_rounded, 'الكادر'),
     ];
   }
 

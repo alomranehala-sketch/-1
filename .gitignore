@@ -30,3 +30,5 @@ coverage/
 
 # Firebase
 firebase/functions/dist/
+
+.dart_tool/
